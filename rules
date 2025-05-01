@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is accessing their own data
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is an admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Allow users to read and write their own data
+      allow read, write: if isOwner(userId);
+      
+      // Allow creation of new user documents (for sign-up)
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Admin can do all operations
+      allow read, write: if isAdmin();
+    }
+    
+    // Allow authenticated users to query users collection by email
+    // This is needed for premium feature functionality (grantPremiumByEmail)
+    match /users/{document=**} {      
+      allow read: if isAuthenticated();
+    }
+    
+    // Allow access to stripe_customers collection for the user's own data
+    match /stripe_customers/{userId}/{document=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    
+    // Allow authenticated users to read career-related collections
+    match /careers/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /careerTrends/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Quiz results rules
+    match /quizResults/{userId}/{document=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    
+    // Premium content rules
+    match /premiumContent/{document=**} {
+      allow read: if isAuthenticated() && 
+                  (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isPremium == true || isAdmin());
+      allow write: if isAdmin();
+    }
+    
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
