@@ -30,6 +30,7 @@ import {
   Person as PersonIcon,
   Logout as LogoutIcon,
   Star as StarIcon,
+  EmojiEvents as EmojiEventsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -126,6 +127,7 @@ const Layout = () => {
     { text: 'Career Trends', icon: <TrendingUpIcon />, path: '/career-trends' },
     { text: 'AI Coach', icon: <PsychologyIcon />, path: '/ai-coach' },
     { text: 'Premium Features', icon: <StarIcon />, path: '/premium-features' },
+    { text: 'Challenges', icon: <EmojiEventsIcon />, path: '/challenges' },
     { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
     // Admin Dashboard and User Management - only visible to admin users
     ...(userRoles.isAdmin ? [

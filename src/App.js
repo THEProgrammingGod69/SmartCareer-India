@@ -26,6 +26,7 @@ import PremiumFeatures from './pages/PremiumFeatures';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
 
+
 // Theme is now managed by ThemeContext
 
 // Premium Features
@@ -33,6 +34,14 @@ import CareerSimulation from './pages/premium/CareerSimulation';
 import CognitiveFit from './pages/premium/CognitiveFit';
 import BurnoutPrediction from './pages/premium/BurnoutPrediction';
 import CareerSwitching from './pages/premium/CareerSwitching';
+import RiskvsReward from './pages/premium/RiskvsReward';
+import RiskvsRewardAnalyzer from './pages/premium/RiskvsRewardAnalyzer';
+import PersonalizedCareerPath from './pages/premium/PersonalizedCareerPath';
+import SmartResumeBuilder from './pages/premium/SmartResumeBuilder';
+import CareerChallenges from './pages/premium/CareerChallenges';
+import ChallengesPage from './pages/ChallengesPage';
+import AskProfessional from './pages/premium/AskProfessional';
+import CareerImpact from './pages/premium/careerimpact';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -97,24 +106,65 @@ function App() {
               <PremiumFeatures />
             </ProtectedRoute>
           } />
-          <Route path="career-simulation" element={
+          {/* Premium Feature Routes */}
+          <Route path="premium/career-simulation" element={
             <ProtectedRoute>
               <CareerSimulation />
             </ProtectedRoute>
           } />
-          <Route path="cognitive-fit" element={
+          <Route path="premium/ask-professional" element={
+            <ProtectedRoute>
+              <AskProfessional />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/risk-vs-reward" element={
+            <ProtectedRoute>
+              <RiskvsReward />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/risk-vs-reward-analyzer" element={
+            <ProtectedRoute>
+              <RiskvsRewardAnalyzer />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/cognitive-fit" element={
             <ProtectedRoute>
               <CognitiveFit />
             </ProtectedRoute>
           } />
-          <Route path="burnout-prediction" element={
+          <Route path="premium/burnout-prediction" element={
             <ProtectedRoute>
               <BurnoutPrediction />
             </ProtectedRoute>
           } />
-          <Route path="career-switching" element={
+          <Route path="premium/career-switching" element={
             <ProtectedRoute>
               <CareerSwitching />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/personalized-career-path" element={
+            <ProtectedRoute>
+              <PersonalizedCareerPath />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/smart-resume" element={
+            <ProtectedRoute>
+              <SmartResumeBuilder />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/career-challenges" element={
+            <ProtectedRoute>
+              <CareerChallenges />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/career-impact" element={
+            <ProtectedRoute>
+              <CareerImpact />
+            </ProtectedRoute>
+          } />
+          <Route path="challenges" element={
+            <ProtectedRoute>
+              <ChallengesPage />
             </ProtectedRoute>
           } />
           <Route path="profile" element={

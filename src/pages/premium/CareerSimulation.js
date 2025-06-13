@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -41,6 +41,19 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCareerSimulation } from '../../utils/premiumCareerFeatures';
+import dataS from './dataS.mp4';
+import uxDesigner from './uxDesigner.mp4';
+import fullStack from './fullStack.mp4';
+import cyberSecurity from './CyberSecurity.webm';
+import productManager from './productManager.mp4';
+import financialAnalyst from './FinancialAnalyst.mp4';
+
+import dataSAudio from './DataS.m4a';
+import uiDesignerAudio from './UIDesigner.m4a';
+import fullStackAudio from './FullStackDev.m4a';
+import cyberSecAudio from './CyberSec.m4a';
+import productManagerAudio from './ProductManager.m4a';
+import financialAnalystAudio from './FinancialAnalyst.m4a';
 
 const CareerSimulation = () => {
   const { currentUser, userRoles } = useAuth();
@@ -52,6 +65,9 @@ const CareerSimulation = () => {
   const [simulationStarted, setSimulationStarted] = useState(false);
   const [simulationComplete, setSimulationComplete] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const videoRef = useRef(null);
+  const audioRef = useRef(null);
   
   // Sample careers with simulations available
   const availableCareers = [
@@ -113,7 +129,46 @@ const CareerSimulation = () => {
 
   // Handle VR mode dialog
   const handleOpenVRDialog = () => {
-    setDialogOpen(true);
+    if (['Data Scientist', 'UX/UI Designer', 'Full Stack Developer', 'Cybersecurity Analyst', 'Product Manager', 'Financial Analyst'].includes(selectedCareer)) {
+      setVideoDialogOpen(true);
+    } else {
+      setDialogOpen(true);
+    }
+  };
+
+  const getAudioSource = () => {
+    switch(selectedCareer) {
+      case 'Data Scientist': return dataSAudio;
+      case 'UX/UI Designer': return uiDesignerAudio;
+      case 'Full Stack Developer': return fullStackAudio;
+      case 'Cybersecurity Analyst': return cyberSecAudio;
+      case 'Product Manager': return productManagerAudio;
+      case 'Financial Analyst': return financialAnalystAudio;
+      default: return '';
+    }
+  };
+
+  const handleVideoTimeUpdate = () => {
+    if (audioRef.current && videoRef.current) {
+      audioRef.current.currentTime = videoRef.current.currentTime;
+    }
+  };
+
+  const handleVideoPlay = () => {
+    if (audioRef.current) audioRef.current.play();
+  };
+
+  const handleVideoPause = () => {
+    if (audioRef.current) audioRef.current.pause();
+  };
+
+  const handleVideoSeeked = () => {
+    if (audioRef.current && videoRef.current) {
+      audioRef.current.currentTime = videoRef.current.currentTime;
+      if (!videoRef.current.paused) {
+        audioRef.current.play();
+      }
+    }
   };
 
   return (
@@ -375,6 +430,70 @@ const CareerSimulation = () => {
             Continue in Desktop Mode
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Video Dialog for Data Scientist */}
+      <Dialog
+        fullScreen
+        open={videoDialogOpen}
+        onClose={() => setVideoDialogOpen(false)}
+      >
+        <DialogContent sx={{ p: 0, bgcolor: 'black', height: '100vh' }}>
+          <Box sx={{ 
+            position: 'relative', 
+            width: '100%', 
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <Button
+              onClick={() => {
+                setVideoDialogOpen(false);
+                if (audioRef.current) audioRef.current.pause();
+              }}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                color: 'white',
+                bgcolor: 'rgba(0,0,0,0.5)',
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+              }}
+            >
+              Close
+            </Button>
+            <video
+              ref={videoRef}
+              autoPlay
+              controls
+              playsInline
+              preload="auto"
+              controlsList="nodownload"
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
+              src={
+                selectedCareer === 'Data Scientist' ? dataS :
+                selectedCareer === 'UX/UI Designer' ? uxDesigner :
+                selectedCareer === 'Full Stack Developer' ? fullStack :
+                selectedCareer === 'Cybersecurity Analyst' ? cyberSecurity :
+                selectedCareer === 'Product Manager' ? productManager :
+                selectedCareer === 'Financial Analyst' ? financialAnalyst :
+                ''
+              }
+              onTimeUpdate={handleVideoTimeUpdate}
+              onPlay={handleVideoPlay}
+              onPause={handleVideoPause}
+              onSeeked={handleVideoSeeked}
+            >
+              Your browser does not support the video tag.
+            </video>
+            <audio
+              ref={audioRef}
+              src={getAudioSource()}
+              preload="auto"
+            />
+          </Box>
+        </DialogContent>
       </Dialog>
     </Container>
   );

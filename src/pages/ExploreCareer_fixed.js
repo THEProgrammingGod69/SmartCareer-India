@@ -1686,7 +1686,7 @@ export const sampleCareers = [
       growth: 'Medium',
     },
     {
-      id: 110,
+      id:  110,
       title: 'Environmental Scientist',
       category: 'Science',
       description: 'Interdisciplinary study of the environment and solutions to ecological issues.',

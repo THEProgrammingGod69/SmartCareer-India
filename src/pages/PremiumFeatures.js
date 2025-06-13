@@ -55,6 +55,8 @@ import {
   CreditCard,
   Lock,
   LockOpen,
+  Chat,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -112,127 +114,97 @@ const PremiumFeatures = () => {
 
   // Premium feature categories
   const featureCategories = [
-    { label: 'Career Tools', value: 0 },
-    { label: 'Resume & Profile', value: 1 },
-    { label: 'AI & Analytics', value: 2 },
-    { label: 'Learning & Development', value: 3 },
+    { value: 0, label: 'AI Career Tools' },
+    { value: 1, label: 'Advanced Analysis' },
+    { value: 2, label: 'Planning & Progress' }
   ];
-
+  
   // Premium features data
   const premiumFeatures = [
-    // Career Tools
     [
       {
-        title: 'Career Simulation (AR/VR)',
-        description: 'Experience a day in your dream career with our immersive AR/VR simulations.',
-        icon: <Visibility color="primary" fontSize="large" />,
-        path: '/career-simulation',
+        title: 'AI Career Coach',
+        description: 'Get personalized career guidance from our AI coach.',
+        icon: <Chat color="primary" fontSize="large" />,
+        path: '/ai-coach',
       },
       {
-        title: 'Cognitive Career Fit Analysis',
-        description: 'Get a detailed analysis of how your cognitive traits match with different careers.',
+        title: 'Ask a Professional',
+        description: 'Connect with industry professionals for advice.',
+        icon: <SupportAgent color="primary" fontSize="large" />,
+        path: '/premium/ask-professional',
+      },
+      {
+        title: 'Smart Resume Builder',
+        description: 'Create professional resumes with AI assistance.',
+        icon: <Description color="primary" fontSize="large" />,
+        path: '/premium/smart-resume',
+      },
+      {
+        title: 'Personalized Career Path',
+        description: 'Get a customized career path based on your skills and interests.',
+        icon: <Explore color="primary" fontSize="large" />,
+        path: '/premium/personalized-career-path',
+      },
+      {
+        title: 'Career Switching Guide',
+        description: 'Get guidance on switching to a new career path.',
+        icon: <SwapHoriz color="primary" fontSize="large" />,
+        path: '/premium/career-switching',
+      },
+    ],
+    [
+      {
+        title: 'Risk vs. Reward Analysis',
+        description: 'Evaluate and compare career paths based on risks and potential rewards.',
+        icon: <Assessment color="primary" fontSize="large" />,
+        path: '/premium/risk-vs-reward-analyzer',
+      },
+      {
+        title: 'Career Simulation',
+        description: 'Experience a day in your chosen career.',
+        icon: <Visibility color="primary" fontSize="large" />,
+        path: '/premium/career-simulation',
+      },
+      {
+        title: 'Cognitive Fit Analysis',
+        description: 'Analyze how well your cognitive skills match different careers.',
         icon: <Psychology color="primary" fontSize="large" />,
-        path: '/cognitive-fit',
+        path: '/premium/cognitive-fit',
       },
       {
         title: 'Burnout & Lifestyle Prediction',
-        description: 'Predict potential burnout risks and lifestyle compatibility with different careers.',
-        icon: <Assessment color="primary" fontSize="large" />,
-        path: '/burnout-prediction',
-      },
-      {
-        title: 'Career Switching Engine',
-        description: 'Explore how to transition to a new career with personalized roadmaps.',
-        icon: <SwapHoriz color="primary" fontSize="large" />,
-        path: '/career-switching',
-      },
-      {
-        title: 'Micro-Career Explorer',
-        description: 'Discover niche career paths and specialized roles within broader career fields.',
-        icon: <Explore color="primary" fontSize="large" />,
-        path: '/micro-careers',
-      },
-    ],
-    // Resume & Profile
-    [
-      {
-        title: 'Smart Resume Builder',
-        description: 'Create career-specific resumes with AI-powered content suggestions.',
-        icon: <Description color="primary" fontSize="large" />,
-        path: '/smart-resume',
-      },
-      {
-        title: 'Skill-Gap Identifier',
-        description: 'Identify skill gaps and get recommended courses to fill them.',
-        icon: <Build color="primary" fontSize="large" />,
-        path: '/skill-gap',
-      },
-      {
-        title: 'Alternate Career Persona',
-        description: 'Explore different career personas based on your skills and interests.',
-        icon: <People color="primary" fontSize="large" />,
-        path: '/career-persona',
-      },
-      {
-        title: 'Personal Career Journal',
-        description: 'Track your career journey, goals, and achievements over time.',
-        icon: <TrackChanges color="primary" fontSize="large" />,
-        path: '/career-journal',
-      },
-    ],
-    // AI & Analytics
-    [
-      {
-        title: 'AI Career Impact Forecaster',
-        description: 'Predict how AI and automation will impact your career in the future.',
+        description: 'Predict burnout risk and lifestyle compatibility for different careers.',
         icon: <TrendingUp color="primary" fontSize="large" />,
-        path: '/ai-impact',
+        path: '/premium/burnout-prediction',
       },
       {
-        title: 'Global Career Compatibility',
-        description: 'Analyze how your career choice translates to opportunities worldwide.',
-        icon: <Work color="primary" fontSize="large" />,
-        path: '/global-compatibility',
-      },
-      {
-        title: 'Risk vs. Reward Analyzer',
-        description: 'Evaluate the risks and rewards of different career paths.',
-        icon: <Assessment color="primary" fontSize="large" />,
-        path: '/risk-reward',
-      },
-      {
-        title: 'Confidential Career Coach',
-        description: 'Get personalized career advice in AI therapist mode.',
-        icon: <SupportAgent color="primary" fontSize="large" />,
-        path: '/confidential-coach',
+        title: 'Career Impact Analysis',
+        description: 'Analyze the future impact and sustainability of different career paths.',
+        icon: <AnalyticsIcon color="primary" fontSize="large" />,
+        path: '/premium/career-impact',
       },
     ],
-    // Learning & Development
     [
       {
-        title: 'Smart Learning Path Generator',
+        title: 'Learning Path Generator',
         description: 'Get personalized learning paths to achieve your career goals.',
         icon: <School color="primary" fontSize="large" />,
         path: '/learning-path',
       },
       {
-        title: 'Career Mentorship Platform',
-        description: 'Connect with mentors in your desired career field.',
-        icon: <People color="primary" fontSize="large" />,
-        path: '/mentorship',
-      },
-      {
-        title: 'AI Role Model Interview',
-        description: 'Learn from AI-simulated interviews with successful professionals in your field.',
-        icon: <Psychology color="primary" fontSize="large" />,
-        path: '/role-model',
+        title: 'Skill Development Tracker',
+        description: 'Track your progress in developing critical career skills.',
+        icon: <TrackChanges color="primary" fontSize="large" />,
+        path: '/skill-tracker',
       },
       {
         title: 'Gamified Career Challenges',
-        description: 'Complete fun challenges to build skills relevant to your career goals.',
-        icon: <Sync color="primary" fontSize="large" />,
-        path: '/career-challenges',
+        description: 'Complete fun challenges to develop career skills and earn rewards.',
+        icon: <Build color="primary" fontSize="large" />,
+        path: '/premium/career-challenges',
       },
+      
     ],
   ];
 
