@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useRef } from 'react';
 import { Box, Button, Container, Grid, Paper, TextField, Typography, Divider, Chip, Avatar, IconButton } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';

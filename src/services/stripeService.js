@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // Stripe Payment Service for Premium Features
 import { db } from '../firebase';
 import { doc, setDoc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';

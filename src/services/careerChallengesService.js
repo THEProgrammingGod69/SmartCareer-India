@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, arrayUnion, increment } from 'firebase/firestore';
 import { careerChallenges, getRecommendedChallenges } from '../utils/careerChallengesData';

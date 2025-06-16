@@ -176,11 +176,13 @@ const CAREER_TRAIT_MAPPING = {
   'c4': { high: ['Social Impact', 'Meaningful', 'Purpose-driven'], low: [] }, // Social impact importance
   
   // Education mapping
-  'e1': { value: 1, level: 'High School' },
-  'e1': { value: 2, level: 'Diploma/Certificate' },
-  'e1': { value: 3, level: 'Bachelor\'s Degree' },
-  'e1': { value: 4, level: 'Master\'s Degree' },
-  'e1': { value: 5, level: 'Doctorate/PhD' },
+  'edu_levels': [
+    { value: 1, level: 'High School' },
+    { value: 2, level: 'Diploma/Certificate' },
+    { value: 3, level: "Bachelor's Degree" },
+    { value: 4, level: "Master's Degree" },
+    { value: 5, level: 'Doctorate/PhD' }
+  ]
 };
 
 /**
@@ -423,13 +425,13 @@ const calculateEducationMatch = (userEducationLevel, career) => {
     : career.education;
   
   // Check if user's education level meets career requirements
-  if (userEducationLevel >= 4 && educationStr.includes('Master') || educationStr.includes('PhD')) {
+  if ((userEducationLevel >= 4) && (educationStr.includes('Master') || educationStr.includes('PhD'))) {
     return 1.0; // Perfect match for advanced degrees
-  } else if (userEducationLevel >= 3 && educationStr.includes('Bachelor')) {
+  } else if ((userEducationLevel >= 3) && educationStr.includes('Bachelor')) {
     return 0.9; // Good match for bachelor's
-  } else if (userEducationLevel >= 2 && educationStr.includes('Diploma') || educationStr.includes('Certificate')) {
+  } else if ((userEducationLevel >= 2) && (educationStr.includes('Diploma') || educationStr.includes('Certificate'))) {
     return 0.7; // Decent match for diploma/certificate
-  } else if (userEducationLevel >= 1 && !educationStr.includes('Bachelor') && !educationStr.includes('Master')) {
+  } else if ((userEducationLevel >= 1) && (!educationStr.includes('Bachelor') && !educationStr.includes('Master'))) {
     return 0.5; // Possible match for high school if no higher education required
   } else {
     return 0.3; // Low match if education requirements not met
@@ -451,13 +453,13 @@ const calculateWorkEnvironmentMatch = (answers, career) => {
   
   // Increment score based on work environment preferences
   // This is a simplified example - a real implementation would be more comprehensive
-  if (career.category === 'Technology' && answers.i1 >= 4) {
+  if ((career.category === 'Technology') && (answers.i1 >= 4)) {
     matchScore += 0.2;
-  } else if (career.category === 'Design' && answers.i2 >= 4) {
+  } else if ((career.category === 'Design') && (answers.i2 >= 4)) {
     matchScore += 0.2;
-  } else if (career.category === 'Finance' && answers.i3 >= 4) {
+  } else if ((career.category === 'Finance') && (answers.i3 >= 4)) {
     matchScore += 0.2;
-  } else if (career.category === 'Healthcare' && answers.i4 >= 4) {
+  } else if ((career.category === 'Healthcare') && (answers.i4 >= 4)) {
     matchScore += 0.2;
   }
   
@@ -478,8 +480,8 @@ const calculatePrioritiesMatch = (answers, career) => {
   // Salary importance (c1)
   if (answers.c1 >= 4) { // High importance on salary
     // Check if career has high salary
-    if (career.salary && career.salary.includes('20,00,000') || 
-        career.salary && career.salary.includes('25,00,000')) {
+    if ((career.salary && (career.salary.includes('20,00,000'))) || 
+        (career.salary && (career.salary.includes('25,00,000')))) {
       matchScore += 0.15;
     } else if (career.salary && career.salary.includes('5,00,000')) {
       matchScore -= 0.1; // Penalize low salary if salary is important

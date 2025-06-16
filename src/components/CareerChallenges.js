@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useChallenges } from '../contexts/ChallengesContext';
 import { useAuth } from '../contexts/AuthContext';

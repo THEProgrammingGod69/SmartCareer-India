@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import { ChallengesProvider } from '../contexts/ChallengesContext';
 import CareerChallenges from '../components/CareerChallenges';
