@@ -526,7 +526,7 @@ const CareerSwitching = () => {
                           </Box>
                           <IconButton 
                             size="small" 
-                            onClick={() => handleOpenInfoDialog('Timeline Details', 'This timeline is an estimate based on the skill gaps between careers and typical learning paths. Your actual timeline may vary based on your learning pace, prior experience, and time commitment.')}
+                            onClick={() => handleInfoDialogOpen('Timeline Details', 'This timeline is an estimate based on the skill gaps between careers and typical learning paths. Your actual timeline may vary based on your learning pace, prior experience, and time commitment.')}
                             sx={{ ml: 1 }}
                           >
                             <Info fontSize="small" />
@@ -572,7 +572,7 @@ const CareerSwitching = () => {
                     Transferable Skills
                     <IconButton 
                       size="small" 
-                      onClick={() => handleOpenInfoDialog('Transferable Skills', 'These are skills you already have that are valuable in your target career. They provide a foundation for your career transition.')}
+                      onClick={() => handleInfoDialogOpen('Transferable Skills', 'These are skills you already have that are valuable in your target career. They provide a foundation for your career transition.')}
                       sx={{ ml: 1 }}
                     >
                       <Info fontSize="small" />
@@ -602,7 +602,7 @@ const CareerSwitching = () => {
                     Skills to Develop
                     <IconButton 
                       size="small" 
-                      onClick={() => handleOpenInfoDialog('Skills to Develop', 'These are skills you need to acquire for your target career. Focus your learning efforts on these areas.')}
+                      onClick={() => handleInfoDialogOpen('Skills to Develop', 'These are skills you need to acquire for your target career. Focus your learning efforts on these areas.')}
                       sx={{ ml: 1 }}
                     >
                       <Info fontSize="small" />
