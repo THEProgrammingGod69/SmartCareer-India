@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -507,34 +507,28 @@ const PremiumFeatures = () => {
   }
   
   // Handle successful payment from Stripe redirect
-  async function handlePaymentSuccess(sessionId) {
+  const handlePaymentSuccess = useCallback(async (sessionId) => {
     try {
       // In a real implementation, verify the session with Stripe
       // For our implementation, we'll process the payment success
       
-      // Find the selected plan based on the session data
-      // For simplicity, we'll check if plans are loaded
       let selectedPlan;
       if (plans.length > 0) {
-        // Try to find the plan from the URL if available
         const urlParams = new URLSearchParams(window.location.search);
         const planId = urlParams.get('plan') || 'price_monthly';
         selectedPlan = plans.find(p => p.id === planId) || plans[0];
       } else {
-        // Fallback to monthly plan if plans aren't loaded yet
-        selectedPlan = { 
-          name: 'Monthly Premium', 
+        selectedPlan = {
+          name: 'Monthly Premium',
           interval: 'month',
-          price: 3999 // 39.99 rupees in paise
+          price: 3999
         };
       }
       
-      // Calculate expiration date
       const now = new Date();
       const months = selectedPlan.interval === 'month' ? 1 : 12;
       const expirationDate = new Date(now.setMonth(now.getMonth() + months));
       
-      // Update user's premium status
       await updatePremiumStatus(true, {
         status: 'active',
         plan: selectedPlan.name,
@@ -544,7 +538,6 @@ const PremiumFeatures = () => {
         currency: 'INR'
       });
       
-      // Show success notification
       setNotification({
         open: true,
         message: 'Payment successful! You now have access to all premium features.',
@@ -554,63 +547,44 @@ const PremiumFeatures = () => {
       console.error('Error processing payment success:', error);
       setNotification({
         open: true,
-        message: 'There was an error processing your payment. Please contact support.',
+        message: 'Failed to process payment. Please contact support.',
         severity: 'error'
       });
     }
-  }
-  
-  // Grant premium access to a user by email (admin only)
-  async function grantPremiumByEmail(email) {
-    if (!email) return { success: false, message: 'Email is required' };
-    
+  }, [plans, updatePremiumStatus, setNotification]);
+
+  // Admin functions
+  const grantPremiumByEmail = useCallback(async (email) => {
     try {
-      // Check if user has admin permissions
-      if (!userRoles.isAdmin) {
-        return { success: false, message: 'Insufficient permissions' };
-      }
-      
-      // Call the AuthContext's grantPremiumByEmail function
-      const result = await authGrantPremiumByEmail(email);
-      return result;
-    } catch (error) {
-      console.error('Error in grantPremiumByEmail:', error);
-      return { 
-        success: false, 
-        message: 'Failed to grant premium access: ' + error.message 
-      };
-    }
-  }
-  
-  // Handle granting premium access (admin only)
-  async function handleGrantAccess() {
-    if (!adminEmail) return;
-    
-    setLoading(true);
-    try {
-      const result = await grantPremiumByEmail(adminEmail);
-      
+      await authGrantPremiumByEmail(email);
       setNotification({
         open: true,
-        message: result.success ? result.message : result.message || 'Failed to grant access',
-        severity: result.success ? 'success' : 'error'
+        message: `Successfully granted premium access to ${email}`,
+        severity: 'success'
       });
-      
-      if (result.success) {
-        setAdminEmail('');
-        setAdminAccessDialogOpen(false);
-      }
+      setAdminAccessDialogOpen(false);
+      setAdminEmail('');
     } catch (error) {
-      console.error('Error granting access:', error);
+      console.error('Error granting premium access:', error);
       setNotification({
         open: true,
-        message: 'Failed to grant premium access',
+        message: 'Failed to grant premium access. Please try again.',
         severity: 'error'
       });
-    } finally {
-      setLoading(false);
     }
-  }
+  }, [authGrantPremiumByEmail, setNotification]);
+
+  const handleGrantAccess = useCallback(async () => {
+    if (!adminEmail) {
+      setNotification({
+        open: true,
+        message: 'Please enter a valid email address.',
+        severity: 'error'
+      });
+      return;
+    }
+    await grantPremiumByEmail(adminEmail);
+  }, [adminEmail, grantPremiumByEmail, setNotification]);
 };
 
 
