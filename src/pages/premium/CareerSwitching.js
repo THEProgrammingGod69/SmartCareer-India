@@ -42,8 +42,10 @@ import {
   Timeline,
   ArrowForward,
   CompareArrows,
+  Add,
   BarChart,
   Lightbulb,
+  Close,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -62,6 +64,35 @@ const calculateSkillGaps = (currentCareer, targetCareer) => {
   });
   
   return gaps;
+};
+
+const calculateCompatibilityScore = (currentCareer, targetCareer) => {
+  const skillGaps = calculateSkillGaps(currentCareer, targetCareer);
+  const targetSkills = new Set(targetCareer?.skills || []);
+  
+  // If there are no target skills, return 0
+  if (targetSkills.size === 0) return 0;
+  
+  // Calculate the percentage of skills already possessed
+  const skillsNeeded = targetSkills.size;
+  const skillsGaps = skillGaps.length;
+  const skillsMatched = skillsNeeded - skillsGaps;
+  
+  return Math.round((skillsMatched / skillsNeeded) * 100);
+};
+
+const getTransferableSkills = (currentCareer, targetCareer) => {
+  const currentSkills = new Set(currentCareer?.skills || []);
+  const targetSkills = new Set(targetCareer?.skills || []);
+  
+  const transferable = [];
+  currentSkills.forEach(skill => {
+    if (targetSkills.has(skill)) {
+      transferable.push(skill);
+    }
+  });
+  
+  return transferable;
 };
 
 const estimateTransitionTime = (currentCareer, targetCareer) => {
@@ -204,28 +235,54 @@ const calculateTransitionRisk = (currentCareer, targetCareer) => {
   return Math.min(Math.max(riskScore / 5, 0), 1);
 };
 
+const getEducationRecommendations = (currentCareer, targetCareer) => {
+  const recommendations = [];
+  const skillGaps = calculateSkillGaps(currentCareer, targetCareer);
+
+  // Add required education from target career
+  if (targetCareer?.education) {
+    targetCareer.education.forEach(edu => {
+      recommendations.push({
+        name: edu,
+        type: 'Formal Education',
+        provider: 'Various Institutions',
+        duration: '1-4 years',
+        cost: 'Varies by institution'
+      });
+    });
+  }
+
+  // Add certifications based on skill gaps
+  skillGaps.forEach(skill => {
+    recommendations.push({
+      name: `${skill} Certification`,
+      type: 'Professional Certification',
+      provider: 'Industry Standard Bodies',
+      duration: '3-6 months',
+      cost: '$500-2000'
+    });
+  });
+
+  return recommendations;
+};
+
 const CareerSwitching = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  
+  // Career selection states
   const [currentCareer, setCurrentCareer] = useState(null);
   const [targetCareer, setTargetCareer] = useState(null);
   const [switchingPlan, setSwitchingPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
-  // Effect to load initial data
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        // Any initial data loading logic
-      } catch (err) {
-        console.error('Error loading initial data:', err);
-        setError('Failed to load initial data. Please try again.');
-      }
-    };
-
-    loadInitialData();
-  }, []);
+  // Dialog states
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+  const [infoDialogContent, setInfoDialogContent] = useState({ title: '', content: '' });
+  
+  // Available careers for selection
+  const availableCareers = allCareers || [];
 
   // Generate switching plan when both careers are selected
   const generateSwitchingPlan = useCallback((current, target) => {
@@ -239,15 +296,28 @@ const CareerSwitching = () => {
         const plan = {
           skillGaps: calculateSkillGaps(current, target),
           timeEstimate: estimateTransitionTime(current, target),
-          steps: generateTransitionSteps(current, target),
+          transitionTimeline: {
+            totalDuration: `${estimateTransitionTime(current, target).min}-${estimateTransitionTime(current, target).max} months`,
+            steps: generateTransitionSteps(current, target)
+          },
           resources: recommendResources(current, target),
           salary: {
-            current: current.salary || "Not specified",
-            target: target.salary || "Not specified",
-            difference: calculateSalaryDifference(current.salary, target.salary)
+            current: current?.salary || "Not specified",
+            target: target?.salary || "Not specified",
+            difference: calculateSalaryDifference(current?.salary, target?.salary)
           },
-          riskLevel: calculateTransitionRisk(current, target)
+          riskLevel: calculateTransitionRisk(current, target),
+          compatibilityScore: calculateCompatibilityScore(current, target),
+          educationRecommendations: getEducationRecommendations(current, target),
+          transferableSkills: getTransferableSkills(current, target),
+          currentCareer: current?.title || "Current Career",
+          targetCareer: target?.title || "Target Career"
         };
+        
+        // Calculate detailed transition timeline
+        const estimatedTime = estimateTransitionTime(current, target);
+        plan.transitionTimeline.totalDuration = `${estimatedTime.min} - ${estimatedTime.max} months`;
+        plan.transitionTimeline.steps = generateTransitionSteps(current, target);
         
         setSwitchingPlan(plan);
       } catch (err) {
@@ -269,132 +339,14 @@ const CareerSwitching = () => {
     }
   }, [currentCareer, targetCareer, generateSwitchingPlan]);
 
-  // Generate education recommendations
-  const generateEducationRecommendations = (targetCareer, skillGaps) => {
-    // Sample education recommendations based on target career
-    const recommendations = [];
-    
-    if (targetCareer === 'Data Scientist') {
-      recommendations.push(
-        { type: 'Course', name: 'Data Science Specialization', provider: 'Coursera', duration: '6 months', cost: '₹15,000' },
-        { type: 'Certification', name: 'TensorFlow Developer Certificate', provider: 'Google', duration: '3 months', cost: '₹10,000' },
-        { type: 'Bootcamp', name: 'Data Science Bootcamp', provider: 'Upgrad', duration: '6 months', cost: '₹2,50,000' }
-      );
-    } else if (targetCareer === 'UX/UI Designer') {
-      recommendations.push(
-        { type: 'Course', name: 'UI/UX Design Specialization', provider: 'Coursera', duration: '6 months', cost: '₹15,000' },
-        { type: 'Certification', name: 'Adobe XD Certification', provider: 'Adobe', duration: '2 months', cost: '₹8,000' },
-        { type: 'Bootcamp', name: 'UX Design Bootcamp', provider: 'DesignX', duration: '4 months', cost: '₹1,80,000' }
-      );
-    } else if (targetCareer === 'Full Stack Developer') {
-      recommendations.push(
-        { type: 'Course', name: 'Full Stack Web Development', provider: 'Udemy', duration: '6 months', cost: '₹12,000' },
-        { type: 'Certification', name: 'AWS Developer Associate', provider: 'Amazon', duration: '3 months', cost: '₹15,000' },
-        { type: 'Bootcamp', name: 'MERN Stack Bootcamp', provider: 'Coding Ninjas', duration: '5 months', cost: '₹2,00,000' }
-      );
-    } else {
-      // Generic recommendations based on skill gaps
-      skillGaps.forEach(skill => {
-        recommendations.push(
-          { type: 'Course', name: `${skill} Fundamentals`, provider: 'Udemy', duration: '2 months', cost: '₹5,000' }
-        );
-      });
-      
-      if (skillGaps.length > 0) {
-        recommendations.push(
-          { type: 'Certification', name: `Professional ${targetCareer} Certification`, provider: 'Industry Association', duration: '3 months', cost: '₹20,000' }
-        );
-      }
-    }
-    
-    return recommendations;
-  };
-
-  // Generate transition timeline
-  const generateTransitionTimeline = (currentCareer, targetCareer, skillGapsCount) => {
-    // Base timeline steps
-    const timeline = [
-      { title: 'Self-Assessment', description: 'Evaluate your current skills, interests, and career goals', duration: '2-4 weeks' },
-      { title: 'Research Target Career', description: 'Learn about day-to-day responsibilities, required skills, and industry trends', duration: '2-4 weeks' },
-      { title: 'Develop Learning Plan', description: 'Create a structured plan to acquire necessary skills and knowledge', duration: '1-2 weeks' }
-    ];
-    
-    // Add skill acquisition phase based on skill gaps
-    if (skillGapsCount > 0) {
-      const duration = skillGapsCount <= 2 ? '3-6 months' : '6-12 months';
-      timeline.push({
-        title: 'Skill Acquisition',
-        description: 'Complete courses, certifications, and projects to build required skills',
-        duration: duration
-      });
-    }
-    
-    // Add networking phase
-    timeline.push({
-      title: 'Networking & Mentorship',
-      description: 'Connect with professionals in your target field and seek mentorship',
-      duration: '1-3 months (ongoing)'
-    });
-    
-    // Add experience building phase
-    timeline.push({
-      title: 'Build Experience',
-      description: 'Take on projects, freelance work, or volunteer opportunities in your target field',
-      duration: '3-6 months'
-    });
-    
-    // Add job search phase
-    timeline.push({
-      title: 'Job Search & Transition',
-      description: 'Update resume, prepare for interviews, and apply for positions in your target field',
-      duration: '2-4 months'
-    });
-    
-    // Calculate total transition time (rough estimate)
-    let minMonths = 0;
-    let maxMonths = 0;
-    
-    timeline.forEach(step => {
-      const duration = step.duration;
-      if (duration.includes('weeks')) {
-        const [min, max] = duration.split('-').map(n => parseInt(n));
-        minMonths += min / 4; // Convert weeks to months
-        maxMonths += max / 4;
-      } else if (duration.includes('months')) {
-        const [min, max] = duration.split('-').map(n => parseInt(n));
-        minMonths += min;
-        maxMonths += max;
-      }
-    });
-    
-    // Round to nearest whole number
-    minMonths = Math.round(minMonths);
-    maxMonths = Math.round(maxMonths);
-    
-    return {
-      steps: timeline,
-      totalDuration: `${minMonths}-${maxMonths} months`
-    };
-  };
-
-  // Calculate compatibility score between current and target career
-  const calculateCompatibilityScore = (currentSkills, targetSkills, userSkills) => {
-    // Count transferable skills
-    const transferableCount = currentSkills.filter(skill => 
-      targetSkills.includes(skill) || userSkills.includes(skill)
-    ).length;
-    
-    // Calculate score as percentage of target skills covered
-    const score = (transferableCount / targetSkills.length) * 100;
-    
-    // Round to nearest whole number
-    return Math.round(score);
-  };
-
-  // Handle info dialog
-  const handleOpenInfoDialog = (title, content) => {
+  // Info dialog handlers
+  const handleInfoDialogOpen = (title, content) => {
     setInfoDialogContent({ title, content });
     setInfoDialogOpen(true);
+  };
+
+  const handleInfoDialogClose = () => {
+    setInfoDialogOpen(false);
   };
 
   if (loading && !switchingPlan) {
@@ -415,73 +367,94 @@ const CareerSwitching = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={0} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Career Switching Engine
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary" paragraph>
-          Explore how to transition to a new career with personalized roadmaps.
-          Get insights on transferable skills, education needs, and timeline estimates.
-        </Typography>
-        <Chip 
-          color="primary" 
-          icon={<Check />} 
-          label="Premium Feature" 
-          sx={{ mb: 2 }}
-        />
-      </Paper>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-      <Grid container spacing={4}>
-        {/* Career Selection */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Select Careers to Compare
-            </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              Choose your current career and the career you want to transition to.
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={5}>
-                <Autocomplete
-                  value={currentCareer}
-                  onChange={(event, newValue) => setCurrentCareer(newValue)}
-                  options={availableCareers}
-                  renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      label="Your Current Career" 
-                      variant="outlined" 
-                      fullWidth 
-                    />
-                  )}
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Career Switching Analysis
+        </Typography>
+        
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={6}>
+            <Autocomplete
+              options={availableCareers}
+              getOptionLabel={(option) => option.title}
+              value={currentCareer}
+              onChange={(e, newValue) => setCurrentCareer(newValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Current Career"
+                  variant="outlined"
+                  fullWidth
                 />
-              </Grid>
-              <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <SwapHoriz sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Grid>
-              <Grid item xs={12} md={5}>
-                <Autocomplete
-                  value={targetCareer}
-                  onChange={(event, newValue) => setTargetCareer(newValue)}
-                  options={availableCareers}
-                  renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      label="Target Career" 
-                      variant="outlined" 
-                      fullWidth 
-                    />
-                  )}
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Autocomplete
+              options={availableCareers}
+              getOptionLabel={(option) => option.title}
+              value={targetCareer}
+              onChange={(e, newValue) => setTargetCareer(newValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Target Career"
+                  variant="outlined"
+                  fullWidth
                 />
-              </Grid>
-            </Grid>
-          </Paper>
+              )}
+            />
+          </Grid>
         </Grid>
 
-        {/* Switching Plan */}
+        {loading && (
+          <Box sx={{ width: '100%', mt: 2 }}>
+            <LinearProgress />
+          </Box>
+        )}
+
         {switchingPlan && (
-          <>
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Career Transition Plan
+            </Typography>
+            
+            <Card sx={{ mb: 3 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <School sx={{ mr: 1 }} />
+                  <Typography variant="h6">Required Skills</Typography>
+                  <IconButton
+                    size="small"
+                    sx={{ ml: 1 }}
+                    onClick={() => handleInfoDialogOpen(
+                      'Skill Gaps',
+                      'These are the skills you need to develop for your target career.'
+                    )}
+                  >
+                    <Info />
+                  </IconButton>
+                </Box>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {switchingPlan.skillGaps.map((skill, index) => (
+                    <Chip
+                      key={index}
+                      label={skill}
+                      icon={<Add />}
+                      color="primary"
+                      variant="outlined"
+                    />
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+
             {/* Compatibility Overview */}
             <Grid item xs={12}>
               <Paper sx={{ p: 3 }}>
@@ -738,26 +711,21 @@ const CareerSwitching = () => {
                 </Box>
               </Paper>
             </Grid>
-          </>
+          </Box>
         )}
-      </Grid>
+      </Paper>
       
-      {/* Info Dialog */}
       <Dialog
         open={infoDialogOpen}
-        onClose={() => setInfoDialogOpen(false)}
+        onClose={handleInfoDialogClose}
         aria-labelledby="info-dialog-title"
       >
-        <DialogTitle id="info-dialog-title">
-          {infoDialogContent.title}
-        </DialogTitle>
+        <DialogTitle id="info-dialog-title">{infoDialogContent.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            {infoDialogContent.content}
-          </DialogContentText>
+          <DialogContentText>{infoDialogContent.content}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setInfoDialogOpen(false)}>Close</Button>
+          <Button onClick={handleInfoDialogClose}>Close</Button>
         </DialogActions>
       </Dialog>
     </Container>
