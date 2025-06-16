@@ -64,3 +64,32 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+# Media files
+*.mp4
+*.webm
+*.mov
+*.avi
+*.wmv
+*.flv
+*.mkv
+*.mp3
+*.wav
+*.ogg
+*.m4a
+*.aac
+*.wma
+*.gif
+*.webp
+*.psd
+*.ai
+*.eps
+
+# Large files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.iso
+*.dmg

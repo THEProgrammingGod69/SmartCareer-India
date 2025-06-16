@@ -26,11 +26,7 @@ import PremiumFeatures from './pages/PremiumFeatures';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
 
-
-// Theme is now managed by ThemeContext
-
 // Premium Features
-import CareerSimulation from './pages/premium/CareerSimulation';
 import CognitiveFit from './pages/premium/CognitiveFit';
 import BurnoutPrediction from './pages/premium/BurnoutPrediction';
 import CareerSwitching from './pages/premium/CareerSwitching';
@@ -107,11 +103,6 @@ function App() {
             </ProtectedRoute>
           } />
           {/* Premium Feature Routes */}
-          <Route path="premium/career-simulation" element={
-            <ProtectedRoute>
-              <CareerSimulation />
-            </ProtectedRoute>
-          } />
           <Route path="premium/ask-professional" element={
             <ProtectedRoute>
               <AskProfessional />

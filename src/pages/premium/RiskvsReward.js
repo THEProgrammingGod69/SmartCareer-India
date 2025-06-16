@@ -195,9 +195,7 @@ const RiskvsReward = () => {
     },
     {
       category: "Advanced Analysis",
-      features: [
-        { title: "Risk vs Reward", icon: <Assessment />, path: "/premium/risk-vs-reward", active: true },
-        { title: "Career Simulation", icon: <Visibility />, path: "/premium/career-simulation" },
+      features: [        { title: "Risk vs Reward", icon: <Assessment />, path: "/premium/risk-vs-reward", active: true },
         { title: "Cognitive Fit", icon: <Psychology />, path: "/premium/cognitive-fit" },
         { title: "Burnout Prediction", icon: <Balance />, path: "/premium/burnout-prediction" },
       ]
