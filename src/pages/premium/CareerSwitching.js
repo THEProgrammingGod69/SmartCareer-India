@@ -42,61 +42,185 @@ import {
   Timeline,
   ArrowForward,
   CompareArrows,
-  Star,
-  StarBorder,
-  Add,
-  Remove,
   BarChart,
   Lightbulb,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { sampleCareers } from '../../pages/ExploreCareer_fixed';
+import { useNavigate } from 'react-router-dom';
+import { allCareers } from '../../utils/premiumCareerFeatures';
+
+// Utility functions for career switching calculations
+const calculateSkillGaps = (currentCareer, targetCareer) => {
+  const currentSkills = new Set(currentCareer.skills || []);
+  const targetSkills = new Set(targetCareer.skills || []);
+  
+  const gaps = [];
+  targetSkills.forEach(skill => {
+    if (!currentSkills.has(skill)) {
+      gaps.push(skill);
+    }
+  });
+  
+  return gaps;
+};
+
+const estimateTransitionTime = (currentCareer, targetCareer) => {
+  const skillGaps = calculateSkillGaps(currentCareer, targetCareer);
+  const baseTime = 6; // Base time in months
+  const timePerSkill = 2; // Additional months per skill gap
+  
+  const estimatedMonths = baseTime + (skillGaps.length * timePerSkill);
+  return {
+    min: Math.max(3, estimatedMonths - 3),
+    max: estimatedMonths + 3
+  };
+};
+
+const generateTransitionSteps = (currentCareer, targetCareer) => {
+  const skillGaps = calculateSkillGaps(currentCareer, targetCareer);
+  const steps = [];
+
+  // Step 1: Initial Assessment
+  steps.push({
+    title: 'Initial Assessment',
+    description: 'Evaluate your current skills and identify gaps',
+    duration: '2-4 weeks',
+    status: 'not_started'
+  });
+
+  // Step 2: Skill Development
+  if (skillGaps.length > 0) {
+    steps.push({
+      title: 'Skill Development',
+      description: `Focus on acquiring key skills: ${skillGaps.join(', ')}`,
+      duration: `${skillGaps.length * 2}-${skillGaps.length * 3} months`,
+      status: 'not_started'
+    });
+  }
+
+  // Step 3: Certification/Education
+  if (targetCareer.education && targetCareer.education.length > 0) {
+    steps.push({
+      title: 'Required Certifications',
+      description: `Obtain necessary certifications: ${targetCareer.education.join(', ')}`,
+      duration: '3-6 months',
+      status: 'not_started'
+    });
+  }
+
+  // Step 4: Networking
+  steps.push({
+    title: 'Industry Networking',
+    description: 'Build connections in your target industry',
+    duration: 'Ongoing',
+    status: 'not_started'
+  });
+
+  // Step 5: Experience Building
+  steps.push({
+    title: 'Practical Experience',
+    description: 'Gain practical experience through projects or internships',
+    duration: '3-6 months',
+    status: 'not_started'
+  });
+
+  return steps;
+};
+
+const recommendResources = (currentCareer, targetCareer) => {
+  const skillGaps = calculateSkillGaps(currentCareer, targetCareer);
+  const resources = [];
+
+  // Online Courses
+  resources.push({
+    type: 'Courses',
+    items: [
+      'Relevant Coursera specializations',
+      'Industry-specific certifications',
+      'Professional development workshops'
+    ]
+  });
+
+  // Books and Materials
+  resources.push({
+    type: 'Learning Materials',
+    items: [
+      'Industry standard textbooks',
+      'Professional journals',
+      'Online tutorials and documentation'
+    ]
+  });
+
+  // Networking
+  resources.push({
+    type: 'Networking',
+    items: [
+      'Professional associations',
+      'Industry conferences',
+      'LinkedIn groups and connections'
+    ]
+  });
+
+  return resources;
+};
+
+const calculateSalaryDifference = (currentSalary, targetSalary) => {
+  // Convert salary strings to numbers
+  const extractNumber = (salary) => {
+    if (!salary) return 0;
+    const matches = salary.match(/\d+,\d+/g);
+    if (!matches) return 0;
+    return parseInt(matches[0].replace(',', ''), 10) * 1000;
+  };
+
+  const current = extractNumber(currentSalary);
+  const target = extractNumber(targetSalary);
+  
+  return {
+    difference: target - current,
+    percentage: current ? ((target - current) / current) * 100 : 0
+  };
+};
+
+const calculateTransitionRisk = (currentCareer, targetCareer) => {
+  let riskScore = 0;
+  
+  // Factor 1: Skill gap size
+  const skillGaps = calculateSkillGaps(currentCareer, targetCareer);
+  riskScore += (skillGaps.length * 0.2); // 0.2 points per skill gap
+
+  // Factor 2: Industry difference
+  if (currentCareer.industry !== targetCareer.industry) {
+    riskScore += 1;
+  }
+
+  // Factor 3: Education requirements
+  const targetEducation = targetCareer.education || [];
+  if (targetEducation.some(edu => edu.includes('Master') || edu.includes('PhD'))) {
+    riskScore += 1;
+  }
+
+  // Normalize score to 0-1 range
+  return Math.min(Math.max(riskScore / 5, 0), 1);
+};
 
 const CareerSwitching = () => {
-  const { currentUser, userRoles } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [currentCareer, setCurrentCareer] = useState('');
-  const [targetCareer, setTargetCareer] = useState('');
+  const [currentCareer, setCurrentCareer] = useState(null);
+  const [targetCareer, setTargetCareer] = useState(null);
   const [switchingPlan, setSwitchingPlan] = useState(null);
-  const [availableCareers, setAvailableCareers] = useState([]);
-  const [userSkills, setUserSkills] = useState([]);
-  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
-  const [infoDialogContent, setInfoDialogContent] = useState({ title: '', content: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
-  // Load available careers and user skills
+  // Effect to load initial data
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        setLoading(true);
-        // In a real app, this would fetch data from a database
-        // For now, we'll use sample data
-        
-        // Simulate API call delay
-        setTimeout(() => {
-          // Get career titles from sample careers
-          const careerTitles = sampleCareers.map(career => career.title);
-          setAvailableCareers(careerTitles);
-          
-          // Sample user skills
-          const sampleUserSkills = [
-            'JavaScript',
-            'React',
-            'Node.js',
-            'Python',
-            'Data Analysis',
-            'Project Management',
-            'Communication',
-            'Problem Solving'
-          ];
-          setUserSkills(sampleUserSkills);
-          
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Error loading initial data:', error);
-        setLoading(false);
+        // Any initial data loading logic
+      } catch (err) {
+        console.error('Error loading initial data:', err);
+        setError('Failed to load initial data. Please try again.');
       }
     };
 
@@ -104,17 +228,9 @@ const CareerSwitching = () => {
   }, []);
 
   // Generate switching plan when both careers are selected
-  useEffect(() => {
-    if (currentCareer && targetCareer) {
-      generateSwitchingPlan(currentCareer, targetCareer);
-    } else {
-      setSwitchingPlan(null);
-    }
-  }, [currentCareer, targetCareer, generateSwitchingPlan]);
-
-  // Generate career switching plan
   const generateSwitchingPlan = useCallback((current, target) => {
     setLoading(true);
+    setError(null);
     
     // Simulate API call delay
     setTimeout(() => {
@@ -134,7 +250,6 @@ const CareerSwitching = () => {
         };
         
         setSwitchingPlan(plan);
-        setError(null);
       } catch (err) {
         console.error('Error generating switching plan:', err);
         setError('Failed to generate career switching plan. Please try again.');
@@ -143,7 +258,16 @@ const CareerSwitching = () => {
         setLoading(false);
       }
     }, 1500);
-  }, []);  // Empty dependency array since it doesn't use any external values
+  }, []);
+
+  // Effect to generate plan when careers are selected
+  useEffect(() => {
+    if (currentCareer && targetCareer) {
+      generateSwitchingPlan(currentCareer, targetCareer);
+    } else {
+      setSwitchingPlan(null);
+    }
+  }, [currentCareer, targetCareer, generateSwitchingPlan]);
 
   // Generate education recommendations
   const generateEducationRecommendations = (targetCareer, skillGaps) => {
