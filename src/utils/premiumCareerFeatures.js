@@ -2,7 +2,7 @@
 import { sampleCareers } from '../pages/ExploreCareer_fixed';
 
 // Combine all career data
-const allCareers = [...sampleCareers];
+export const allCareers = [...sampleCareers];
 
 // ========== COGNITIVE CAREER FIT ANALYZER ==========
 
