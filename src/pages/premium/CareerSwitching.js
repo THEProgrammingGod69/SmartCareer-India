@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -110,64 +110,40 @@ const CareerSwitching = () => {
     } else {
       setSwitchingPlan(null);
     }
-  }, [currentCareer, targetCareer]);
+  }, [currentCareer, targetCareer, generateSwitchingPlan]);
 
   // Generate career switching plan
-  const generateSwitchingPlan = (current, target) => {
+  const generateSwitchingPlan = useCallback((current, target) => {
     setLoading(true);
     
     // Simulate API call delay
     setTimeout(() => {
-      // Get career details
-      const currentCareerDetails = sampleCareers.find(career => career.title === current) || {};
-      const targetCareerDetails = sampleCareers.find(career => career.title === target) || {};
-      
-      // Get skills for both careers
-      const currentSkills = currentCareerDetails.skills || [];
-      const targetSkills = targetCareerDetails.skills || [];
-      
-      // Identify transferable skills
-      const transferableSkills = currentSkills.filter(skill => 
-        targetSkills.includes(skill) || userSkills.includes(skill)
-      );
-      
-      // Identify skill gaps
-      const skillGaps = targetSkills.filter(skill => 
-        !currentSkills.includes(skill) && !userSkills.includes(skill)
-      );
-      
-      // Generate education recommendations
-      const educationRecommendations = generateEducationRecommendations(target, skillGaps);
-      
-      // Generate transition timeline
-      const transitionTimeline = generateTransitionTimeline(current, target, skillGaps.length);
-      
-      // Calculate compatibility score
-      const compatibilityScore = calculateCompatibilityScore(currentSkills, targetSkills, userSkills);
-      
-      // Generate plan
-      const plan = {
-        currentCareer: current,
-        targetCareer: target,
-        transferableSkills,
-        skillGaps,
-        educationRecommendations,
-        transitionTimeline,
-        compatibilityScore,
-        salary: {
-          current: currentCareerDetails.salary || 'Not available',
-          target: targetCareerDetails.salary || 'Not available'
-        },
-        growth: {
-          current: currentCareerDetails.growth || 'Not available',
-          target: targetCareerDetails.growth || 'Not available'
-        }
-      };
-      
-      setSwitchingPlan(plan);
-      setLoading(false);
+      try {
+        // Create switching plan based on career differences
+        const plan = {
+          skillGaps: calculateSkillGaps(current, target),
+          timeEstimate: estimateTransitionTime(current, target),
+          steps: generateTransitionSteps(current, target),
+          resources: recommendResources(current, target),
+          salary: {
+            current: current.salary || "Not specified",
+            target: target.salary || "Not specified",
+            difference: calculateSalaryDifference(current.salary, target.salary)
+          },
+          riskLevel: calculateTransitionRisk(current, target)
+        };
+        
+        setSwitchingPlan(plan);
+        setError(null);
+      } catch (err) {
+        console.error('Error generating switching plan:', err);
+        setError('Failed to generate career switching plan. Please try again.');
+        setSwitchingPlan(null);
+      } finally {
+        setLoading(false);
+      }
     }, 1500);
-  };
+  }, []);  // Empty dependency array since it doesn't use any external values
 
   // Generate education recommendations
   const generateEducationRecommendations = (targetCareer, skillGaps) => {

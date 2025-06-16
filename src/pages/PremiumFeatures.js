@@ -107,7 +107,7 @@ const PremiumFeatures = () => {
       // Remove query params from URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [handlePaymentSuccess]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
