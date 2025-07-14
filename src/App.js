@@ -38,6 +38,9 @@ import CareerChallenges from './pages/premium/CareerChallenges';
 import ChallengesPage from './pages/ChallengesPage';
 import AskProfessional from './pages/premium/AskProfessional';
 import CareerImpact from './pages/premium/careerimpact';
+import LearningPath from './pages/premium/LearningPath';
+import SkillTracker from './pages/premium/SkillTracker';
+import MockInterview from './pages/premium/MockInterview';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -151,6 +154,21 @@ function App() {
           <Route path="premium/career-impact" element={
             <ProtectedRoute>
               <CareerImpact />
+            </ProtectedRoute>
+          } />
+          <Route path="learning-path" element={
+            <ProtectedRoute>
+              <LearningPath />
+            </ProtectedRoute>
+          } />
+          <Route path="skill-tracker" element={
+            <ProtectedRoute>
+              <SkillTracker />
+            </ProtectedRoute>
+          } />
+          <Route path="premium/mock-interview" element={
+            <ProtectedRoute>
+              <MockInterview />
             </ProtectedRoute>
           } />
           <Route path="challenges" element={

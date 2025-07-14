@@ -128,12 +128,6 @@ const PremiumFeatures = () => {
         path: '/premium/risk-vs-reward-analyzer',
       },
       {
-        title: 'Career Simulation',
-        description: 'Experience a day in your chosen career.',
-        icon: <Visibility color="primary" fontSize="large" />,
-        path: '/premium/career-simulation',
-      },
-      {
         title: 'Cognitive Fit Analysis',
         description: 'Analyze how well your cognitive skills match different careers.',
         icon: <Psychology color="primary" fontSize="large" />,
@@ -170,6 +164,12 @@ const PremiumFeatures = () => {
         description: 'Complete fun challenges to develop career skills and earn rewards.',
         icon: <Build color="primary" fontSize="large" />,
         path: '/premium/career-challenges',
+      },
+      {
+        title: 'Mock Interview Practice',
+        description: 'Practice with AI-powered mock interviews and get feedback.',
+        icon: <Chat color="primary" fontSize="large" />,
+        path: '/premium/mock-interview',
       },
       
     ],

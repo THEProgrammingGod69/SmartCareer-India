@@ -7,7 +7,10 @@ import { getFirestore } from 'firebase/firestore';
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: "AIzaSyDurf6BYyWD5iPodfAtjCD6Rvby9RP1lGQ",
-    authDomain: "smartcareerplanning-4f778.firebaseapp.com",
+    // Use different authDomain based on the hosting environment
+    authDomain: window.location.hostname.includes('netlify.app') 
+        ? "careersmartindia.netlify.app" 
+        : "smartcareerplanning-4f778.firebaseapp.com",
     projectId: "smartcareerplanning-4f778",
     storageBucket: "smartcareerplanning-4f778.appspot.com",
     messagingSenderId: "481802282237",
