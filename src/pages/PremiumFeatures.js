@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -18,22 +18,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  IconButton,
-  Tooltip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  CircularProgress,
   Alert,
   Snackbar,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
-  FormLabel,
-  TextField,
 } from '@mui/material';
 import {
   Star,
@@ -61,53 +47,33 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import stripeService from '../services/stripeService';
+// Payment service removed
 
 const PremiumFeatures = () => {
-  const { currentUser, userRoles, updatePremiumStatus, grantPremiumByEmail: authGrantPremiumByEmail } = useAuth();
+  const { updatePremiumStatus } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [plans, setPlans] = useState([]);
-  const [selectedPlan, setSelectedPlan] = useState('');
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
-  const [adminAccessDialogOpen, setAdminAccessDialogOpen] = useState(false);
-  const [adminEmail, setAdminEmail] = useState('');
   
-  // Get premium status from user roles
-  const isPremium = userRoles.isPremium;
-  
-  // Fetch subscription plans
+  // Auto-grant premium access
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const availablePlans = await stripeService.getSubscriptionPlans();
-        setPlans(availablePlans);
-        if (availablePlans.length > 0) {
-          setSelectedPlan(availablePlans[0].id);
-        }
-      } catch (error) {
-        console.error('Error fetching plans:', error);
-      }
-    };
+    // Grant premium access automatically to all users
+    updatePremiumStatus(true, {
+      status: 'active',
+      plan: 'Premium',
+      current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+      cancel_at_period_end: false,
+    });
     
-    fetchPlans();
-  }, []);
-  
-  // Check for payment success in URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session_id');
-    
-    if (sessionId) {
-      // Payment was successful
-      handlePaymentSuccess(sessionId);
-      
-      // Remove query params from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [handlePaymentSuccess]);
+    // Set notification that premium is enabled
+    setNotification({
+      open: true,
+      message: 'Premium features are now accessible!',
+      severity: 'success'
+    });
+  }, [updatePremiumStatus]);
+
+  // No need for payment success check - removed
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -222,7 +188,7 @@ const PremiumFeatures = () => {
           sx={{ mb: 2 }}
         />
         <Typography variant="subtitle1" color="text.secondary" paragraph>
-          All premium features are currently available to all users while admin privileges are being configured.
+          All premium features are now available for your use.
         </Typography>
       </Paper>
       
@@ -342,93 +308,7 @@ const PremiumFeatures = () => {
           </Paper>
         </Grid>
       </Grid>
-      {/* Payment Dialog */}
-      <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Upgrade to Premium</DialogTitle>
-        <DialogContent>
-          <DialogContentText paragraph>
-            Choose a subscription plan to unlock all premium features and enhance your career journey.
-          </DialogContentText>
-          
-          {plans.length > 0 ? (
-            <FormControl component="fieldset" sx={{ mt: 2 }}>
-              <FormLabel component="legend">Available Plans</FormLabel>
-              <RadioGroup
-                value={selectedPlan}
-                onChange={(e) => setSelectedPlan(e.target.value)}
-              >
-                {plans.map((plan) => (
-                  <FormControlLabel
-                    key={plan.id}
-                    value={plan.id}
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant="subtitle1">
-                          {plan.name} - ₹{plan.price/100}/{
-                            plan.interval === 'month' ? 'month' : 'year'
-                          }
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {plan.description}
-                          {plan.discount && ` (Save ${plan.discount})`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </RadioGroup>
-            </FormControl>
-          ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-              <CircularProgress />
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            color="primary"
-            startIcon={<CreditCard />}
-            onClick={handleCheckout}
-            disabled={loading || !selectedPlan}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Proceed to Payment'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Admin Access Dialog (hidden in UI but can be accessed via URL parameter) */}
-      <Dialog open={adminAccessDialogOpen} onClose={() => setAdminAccessDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Grant Premium Access</DialogTitle>
-        <DialogContent>
-          <DialogContentText paragraph>
-            Admin only: Grant premium access to a user by email address.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="User Email"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={adminEmail}
-            onChange={(e) => setAdminEmail(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAdminAccessDialogOpen(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            color="primary"
-            onClick={handleGrantAccess}
-            disabled={loading || !adminEmail}
-          >
-            Grant Access
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Payment dialogs removed */}
       
       <Snackbar
         open={notification.open}
@@ -442,149 +322,7 @@ const PremiumFeatures = () => {
     </Container>
   );
   
-  // Handle checkout process
-  async function handleCheckout() {
-    if (!currentUser) {
-      navigate('/login');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      // Initialize Stripe
-      const stripe = await stripeService.initStripe();
-      if (!stripe) {
-        throw new Error('Failed to initialize payment system');
-      }
-      
-      // Create checkout session
-      const { sessionId, url } = await stripeService.createCheckoutSession(
-        currentUser.uid,
-        selectedPlan,
-        currentUser.email
-      );
-      
-      // Redirect to checkout URL (functional payment flow)
-      window.location.href = url;
-      
-    } catch (error) {
-      console.error('Checkout error:', error);
-      setNotification({
-        open: true,
-        message: 'Payment processing failed. Please try again.',
-        severity: 'error'
-      });
-    } finally {
-      setLoading(false);
-      setPaymentDialogOpen(false);
-    }
-  }
-  
-  // Simulate successful payment (for demo purposes)
-  function simulateSuccessfulPayment() {
-    // Get selected plan details
-    const plan = plans.find(p => p.id === selectedPlan);
-    
-    // Calculate expiration date
-    const now = new Date();
-    const months = plan.interval === 'month' ? 1 : 12;
-    const expirationDate = new Date(now.setMonth(now.getMonth() + months));
-    
-    // Update user's premium status
-    updatePremiumStatus(true, {
-      status: 'active',
-      plan: plan.name,
-      current_period_end: expirationDate,
-      cancel_at_period_end: false,
-    });
-    
-    // Show success notification
-    setNotification({
-      open: true,
-      message: `Successfully upgraded to ${plan.name}! You now have access to all premium features.`,
-      severity: 'success'
-    });
-  }
-  
-  // Handle successful payment from Stripe redirect
-  const handlePaymentSuccess = useCallback(async (sessionId) => {
-    try {
-      // In a real implementation, verify the session with Stripe
-      // For our implementation, we'll process the payment success
-      
-      let selectedPlan;
-      if (plans.length > 0) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const planId = urlParams.get('plan') || 'price_monthly';
-        selectedPlan = plans.find(p => p.id === planId) || plans[0];
-      } else {
-        selectedPlan = {
-          name: 'Monthly Premium',
-          interval: 'month',
-          price: 3999
-        };
-      }
-      
-      const now = new Date();
-      const months = selectedPlan.interval === 'month' ? 1 : 12;
-      const expirationDate = new Date(now.setMonth(now.getMonth() + months));
-      
-      await updatePremiumStatus(true, {
-        status: 'active',
-        plan: selectedPlan.name,
-        current_period_end: expirationDate,
-        cancel_at_period_end: false,
-        price: selectedPlan.price,
-        currency: 'INR'
-      });
-      
-      setNotification({
-        open: true,
-        message: 'Payment successful! You now have access to all premium features.',
-        severity: 'success'
-      });
-    } catch (error) {
-      console.error('Error processing payment success:', error);
-      setNotification({
-        open: true,
-        message: 'Failed to process payment. Please contact support.',
-        severity: 'error'
-      });
-    }
-  }, [plans, updatePremiumStatus, setNotification]);
-
-  // Admin functions
-  const grantPremiumByEmail = useCallback(async (email) => {
-    try {
-      await authGrantPremiumByEmail(email);
-      setNotification({
-        open: true,
-        message: `Successfully granted premium access to ${email}`,
-        severity: 'success'
-      });
-      setAdminAccessDialogOpen(false);
-      setAdminEmail('');
-    } catch (error) {
-      console.error('Error granting premium access:', error);
-      setNotification({
-        open: true,
-        message: 'Failed to grant premium access. Please try again.',
-        severity: 'error'
-      });
-    }
-  }, [authGrantPremiumByEmail, setNotification]);
-
-  const handleGrantAccess = useCallback(async () => {
-    if (!adminEmail) {
-      setNotification({
-        open: true,
-        message: 'Please enter a valid email address.',
-        severity: 'error'
-      });
-      return;
-    }
-    await grantPremiumByEmail(adminEmail);
-  }, [adminEmail, grantPremiumByEmail, setNotification]);
+  // Payment-related functions removed
 };
 
 

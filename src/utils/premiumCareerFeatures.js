@@ -1,6 +1,7 @@
 // Premium Career Features
 import { sampleCareers } from '../pages/ExploreCareer_fixed';
 
+
 // Combine all career data
 export const allCareers = [...sampleCareers];
 
@@ -210,7 +211,7 @@ export const predictBurnoutAndLifestyle = (userPreferences = {}) => {
       burnoutRate: 'Moderate',
       burnoutRisk: 0.5
     },
--    'UX/UI Designer': {
+    'UX/UI Designer': {
       workLifeBalance: 0.7,
       stressLevel: 0.5,
       typicalWorkload: 0.6,
