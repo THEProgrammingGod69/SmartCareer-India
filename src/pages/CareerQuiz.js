@@ -66,7 +66,12 @@ import {
   AccessTime, // Icon for timing
   AccountBalanceWallet, // Icon for Values
   RocketLaunch, // Icon for Aspirations
+  VolumeUp,
+  Stop,
 } from '@mui/icons-material';
+
+// Read-aloud support (Web Speech API) for students who prefer listening
+const CAN_SPEAK = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
 // Enhanced quiz questions with more personalized options for accurate career matching
 const quizSections = [
@@ -589,11 +594,45 @@ const CareerQuiz = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [animateQuestion, setAnimateQuestion] = useState(true);
+  const [speaking, setSpeaking] = useState(false);
 
   const currentSection = quizSections[activeStep];
   const currentQuestion = currentSection?.questions[currentQuestionIndex];
   const totalQuestionsInSection = currentSection?.questions.length || 0;
   
+  // Stop any read-aloud when the question changes or the page closes
+  useEffect(() => {
+    if (CAN_SPEAK) window.speechSynthesis.cancel();
+    setSpeaking(false);
+  }, [currentQuestionIndex, activeStep]);
+
+  useEffect(() => () => {
+    if (CAN_SPEAK) window.speechSynthesis.cancel();
+  }, []);
+
+  const speakQuestion = () => {
+    if (!CAN_SPEAK || !currentQuestion) return;
+    const synth = window.speechSynthesis;
+    if (speaking) {
+      synth.cancel();
+      setSpeaking(false);
+      return;
+    }
+    const choices = currentQuestion.options || currentQuestion.marks || [];
+    const choiceText = choices
+      .filter((c) => c && c.label)
+      .map((c, i) => `Option ${i + 1}: ${c.label}.`)
+      .join(' ');
+    const utterance = new SpeechSynthesisUtterance(`${currentQuestion.text}. ${choiceText}`);
+    utterance.lang = 'en-IN';
+    utterance.rate = 0.95;
+    utterance.onend = () => setSpeaking(false);
+    utterance.onerror = () => setSpeaking(false);
+    synth.cancel();
+    synth.speak(utterance);
+    setSpeaking(true);
+  };
+
   // Reset animation when question changes
   useEffect(() => {
     setAnimateQuestion(false);
@@ -886,6 +925,18 @@ const CareerQuiz = () => {
                         color="primary" 
                         variant="outlined"
                       />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {CAN_SPEAK && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={speakQuestion}
+                          startIcon={speaking ? <Stop /> : <VolumeUp />}
+                          aria-label={speaking ? 'Stop reading the question' : 'Read the question aloud'}
+                        >
+                          {speaking ? 'Stop' : 'Listen'}
+                        </Button>
+                      )}
                       {currentQuestion?.tooltip && (
                         <Tooltip 
                           title={currentQuestion.tooltip}
@@ -904,6 +955,7 @@ const CareerQuiz = () => {
                           </IconButton>
                         </Tooltip>
                       )}
+                      </Box>
                     </Box>
                     
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
