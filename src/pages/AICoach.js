@@ -42,7 +42,7 @@ import { useNavigate } from 'react-router-dom';
 const sampleResponses = {
   greeting: [
     "Hello! I'm your AI Career Coach. How can I help with your career journey today?",
-    "Welcome to CareerSmart! I'm here to provide career guidance and advice. What would you like to know?",
+    "Welcome to SmartCareer India! I'm here to provide career guidance and advice. What would you like to know?",
   ],
   resume: [
     "For a standout resume, focus on quantifiable achievements rather than just listing responsibilities. Use action verbs and tailor your resume for each job application. Would you like specific tips for your industry?",
@@ -99,7 +99,9 @@ const AICoach = () => {
   const isPremium = userRoles.isPremium;
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Scroll only the chat list, not the whole page
+    const list = messagesEndRef.current?.parentElement;
+    if (list) list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -278,7 +280,7 @@ const AICoach = () => {
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
+            <Box sx={{ p: 2, backgroundImage: 'linear-gradient(135deg, #7C5CFF 0%, #22D3EE 100%)', color: 'white' }}>
               <Typography variant="h6">
                 Career Coach Chat
               </Typography>
@@ -320,8 +322,9 @@ const AICoach = () => {
                       elevation={1} 
                       sx={{ 
                         p: 2, 
-                        bgcolor: message.sender === 'user' ? 'secondary.light' : 'grey.100',
-                        borderRadius: 2,
+                        bgcolor: message.sender === 'user' ? 'transparent' : 'action.hover',
+                        backgroundImage: message.sender === 'user' ? 'linear-gradient(135deg, #7C5CFF 0%, #22D3EE 100%)' : 'none',
+                        borderRadius: '16px',
                       }}
                     >
                       <ListItemText 
