@@ -53,10 +53,10 @@ import {
   Visibility,
   VisibilityOff,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 
 const SkillTracker = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const [loading, setLoading] = useState(false);
   const [skills, setSkills] = useState([]);
   const [openAddDialog, setOpenAddDialog] = useState(false);

@@ -103,18 +103,18 @@ const Home = () => {
                     color="secondary" 
                     size="large"
                     component={RouterLink}
-                    to="/register"
+                    to="/career-quiz"
                   >
-                    Get Started
+                    Take the Career Quiz
                   </Button>
                   <Button 
                     variant="outlined" 
                     color="inherit" 
                     size="large"
                     component={RouterLink}
-                    to="/login"
+                    to="/dashboard"
                   >
-                    Login
+                    Explore the App
                   </Button>
                 </Stack>
               </Box>
@@ -212,7 +212,7 @@ const Home = () => {
                 color="secondary" 
                 size="large"
                 component={RouterLink}
-                to="/register"
+                to="/career-quiz"
                 sx={{ px: 4, py: 1.5 }}
               >
                 Get Started Now

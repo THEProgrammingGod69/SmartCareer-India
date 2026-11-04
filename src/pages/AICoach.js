@@ -35,7 +35,7 @@ import {
 } from '@mui/icons-material';
 import geminiService from '../services/geminiService';
 import llamaService from '../services/llamaService';
-import { useAuth } from '../contexts/AuthContext';
+import { useLocalUser } from '../utils/localUser';
 import { useNavigate } from 'react-router-dom';
 
 // Sample predefined responses - in a real app, this would be handled by an actual AI service
@@ -92,7 +92,7 @@ const AICoach = () => {
   const [useLlama, setUseLlama] = useState(true); // Default to Llama for premium users
   const [modelInfo, setModelInfo] = useState(null);
   const messagesEndRef = useRef(null);
-  const { currentUser, userRoles } = useAuth();
+  const { currentUser, userRoles } = useLocalUser();
   const navigate = useNavigate();
   
   // Check if user has premium access

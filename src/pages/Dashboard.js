@@ -20,10 +20,10 @@ import {
   Psychology as PsychologyIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useLocalUser } from '../utils/localUser';
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const navigate = useNavigate();
   
   const dashboardCards = [

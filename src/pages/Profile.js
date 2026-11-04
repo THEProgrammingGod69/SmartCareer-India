@@ -47,11 +47,11 @@ import {
   Language as LanguageIcon,
   Link as LinkIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useLocalUser, getLocalProfile, saveLocalProfile } from '../utils/localUser';
 import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -105,10 +105,11 @@ const Profile = () => {
             }] : 
             [{ date: '2023-05-15', topMatch: 'Data Scientist', matchPercentage: 92 }];
           
-          // Sample data - in a real app, this would come from a database
-          setProfile({
-            displayName: currentUser?.displayName || 'User Name',
-            email: currentUser?.email || 'user@example.com',
+          // Profile is stored in this browser; fall back to sample data
+          const storedProfile = getLocalProfile();
+          setProfile(storedProfile ? { ...storedProfile, quizResults: userQuizResults, resume: null } : {
+            displayName: currentUser?.displayName || 'Your Name',
+            email: currentUser?.email || 'you@example.com',
             phone: '+91 9876543210',
             education: 'Bachelor of Technology, Computer Science',
             location: 'Bangalore, India',
@@ -223,8 +224,10 @@ const Profile = () => {
   };
 
   const handleSaveProfile = () => {
-    // In a real app, you would save the updated profile to a database
+    // Save the profile in this browser
     setLoading(true);
+    const { resume, quizResults, ...profileToStore } = profile;
+    saveLocalProfile(profileToStore);
     
     // Simulate API call delay
     setTimeout(() => {

@@ -30,9 +30,9 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material';
 
-import { sampleCareers } from './ExploreCareer_fixed';
+import { sampleCareers } from './ExploreCareer';
 import { calculateCareerMatches, saveQuizResults } from '../utils/careerMatchingAlgorithm';
-import { useAuth } from '../contexts/AuthContext';
+import { useLocalUser } from '../utils/localUser';
 
 // Use the advanced career matching algorithm instead of random matching
 const calculateMatches = (answers) => {
@@ -41,7 +41,7 @@ const calculateMatches = (answers) => {
 
 const QuizResults = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const [loading, setLoading] = useState(true);
   const [careerMatches, setCareerMatches] = useState([]);
   const [error, setError] = useState('');
@@ -95,11 +95,9 @@ const QuizResults = () => {
   };
   
   const handleSaveResults = () => {
-    if (currentUser && careerMatches.length > 0) {
+    if (careerMatches.length > 0) {
       saveQuizResults(careerMatches, currentUser.uid);
       setSaved(true);
-    } else if (!currentUser) {
-      navigate('/login', { state: { from: '/quiz-results', message: 'Please log in to save your results' } });
     }
   };
 

@@ -1,5 +1,5 @@
 // Premium Career Features
-import { sampleCareers } from '../pages/ExploreCareer_fixed';
+import { sampleCareers } from '../pages/ExploreCareer';
 
 
 // Combine all career data

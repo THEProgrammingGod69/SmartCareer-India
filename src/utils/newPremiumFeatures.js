@@ -7,7 +7,7 @@
 // - Confidential Career Coach (AI Therapist Mode)
 
 // Import career data
-import { sampleCareers } from '../pages/ExploreCareer_fixed';
+import { sampleCareers } from '../pages/ExploreCareer';
 import { expandedCareers } from '../data/expandedCareers';
 
 // Combine all career data
