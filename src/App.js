@@ -28,6 +28,7 @@ import PersonalizedCareerPath from './pages/premium/PersonalizedCareerPath';
 import SmartResumeBuilder from './pages/premium/SmartResumeBuilder';
 import CareerChallenges from './pages/premium/CareerChallenges';
 import ChallengesPage from './pages/ChallengesPage';
+import Scholarships from './pages/Scholarships';
 import AskProfessional from './pages/premium/AskProfessional';
 import CareerImpact from './pages/premium/careerimpact';
 import LearningPath from './pages/premium/LearningPath';
@@ -49,6 +50,7 @@ function App() {
           <Route path="explore-careers" element={<ExploreCareer />} />
           <Route path="career/:id" element={<CareerDetail />} />
           <Route path="career-trends" element={<CareerTrends />} />
+          <Route path="scholarships" element={<Scholarships />} />
           <Route path="ai-coach" element={<AICoach />} />
           <Route path="premium-features" element={<PremiumFeatures />} />
           {/* Premium Feature Routes */}

@@ -35,6 +35,7 @@ import {
   BatteryAlertOutlined as BurnoutIcon,
   SchoolOutlined as SchoolIcon,
   AutoGraphOutlined as SkillIcon,
+  VolunteerActivismOutlined as SevaIcon,
 } from '@mui/icons-material';
 import ThemeToggle from '../ThemeToggle';
 import BrandLogo from '../BrandLogo';
@@ -55,6 +56,7 @@ const navSections = [
       { text: 'Career Quiz', icon: <QuizIcon />, path: '/career-quiz' },
       { text: 'Explore Careers', icon: <ExploreIcon />, path: '/explore-careers' },
       { text: 'Career Trends', icon: <TrendingUpIcon />, path: '/career-trends' },
+      { text: 'Scholarships & Schemes', icon: <SevaIcon />, path: '/scholarships' },
     ],
   },
   {

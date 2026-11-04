@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -28,7 +29,9 @@ import {
   ArrowForward,
   Refresh,
   Save as SaveIcon,
+  PictureAsPdfOutlined as PdfIcon,
 } from '@mui/icons-material';
+import CareerReport from '../components/CareerReport';
 
 import { sampleCareers } from './ExploreCareer';
 import { calculateCareerMatches, saveQuizResults } from '../utils/careerMatchingAlgorithm';
@@ -46,6 +49,12 @@ const QuizResults = () => {
   const [careerMatches, setCareerMatches] = useState([]);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const reportRef = useRef(null);
+  const downloadReport = useReactToPrint({
+    contentRef: reportRef,
+    documentTitle: 'SmartCareer-India-Career-Report',
+    pageStyle: '@page { size: A4; margin: 12mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
+  });
 
   useEffect(() => {
     // Fetch results based on stored quiz answers
@@ -144,10 +153,19 @@ const QuizResults = () => {
         <Typography variant="body1" align="center" color="text.secondary" paragraph>
           Based on your responses, we've identified these career paths that align with your personality, skills, and interests.
         </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Button variant="contained" startIcon={<PdfIcon />} onClick={() => downloadReport()}>
+            Download Career Report (PDF)
+          </Button>
+        </Box>
+        {/* Hidden printable report */}
+        <div style={{ display: 'none' }}>
+          <CareerReport ref={reportRef} matches={careerMatches} name={currentUser?.displayName} />
+        </div>
 
         <Box sx={{ my: 4 }}>
           {careerMatches.map((career, index) => (
-            <Card key={career.id} variant="outlined" sx={{ mb: 3, border: index === 0 ? '2px solid #1976d2' : '' }}>
+            <Card key={career.id} variant="outlined" sx={{ mb: 3, ...(index === 0 && { border: '2px solid', borderColor: 'primary.main' }) }}>
               {index === 0 && (
                 <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 1, px: 2 }}>
                   <Typography variant="subtitle2">Top Match</Typography>
