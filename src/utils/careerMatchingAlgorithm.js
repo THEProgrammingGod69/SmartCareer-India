@@ -3,7 +3,7 @@
 // Enhanced with innovative features: AR/VR simulations, blockchain tracking, cognitive dissonance reduction,
 // swarm intelligence, and neurocognitive pattern analysis
 
-import { sampleCareers } from '../pages/ExploreCareer_fixed';
+import { sampleCareers } from '../pages/ExploreCareer';
 import { expandedCareers } from '../data/expandedCareers';
 
 // Combine all career data for matching

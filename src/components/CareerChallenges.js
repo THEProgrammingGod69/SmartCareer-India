@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useChallenges } from '../contexts/ChallengesContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useLocalUser } from '../utils/localUser';
 import {
   Container,
   Typography,
@@ -47,7 +47,7 @@ import {
 } from '@mui/icons-material';
 
 const CareerChallenges = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const {
     userProgress,
     completedChallenges,

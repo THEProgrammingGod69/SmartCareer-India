@@ -14,9 +14,6 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  Avatar,
-  Menu,
-  MenuItem,
   Divider,
   useMediaQuery,
 } from '@mui/material';
@@ -28,11 +25,9 @@ import {
   TrendingUp as TrendingUpIcon,
   Psychology as PsychologyIcon,
   Person as PersonIcon,
-  Logout as LogoutIcon,
   Star as StarIcon,
   EmojiEvents as EmojiEventsIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 
@@ -95,29 +90,10 @@ const Layout = () => {
   });
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [open, setOpen] = useState(!isMobile);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const { currentUser, logout, userRoles } = useAuth();
   const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
     setOpen(!open);
-  };
-
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Failed to log out', error);
-    }
   };
 
   const menuItems = [
@@ -129,11 +105,6 @@ const Layout = () => {
     { text: 'Premium Features', icon: <StarIcon />, path: '/premium-features' },
     { text: 'Challenges', icon: <EmojiEventsIcon />, path: '/challenges' },
     { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
-    // Admin Dashboard and User Management - only visible to admin users
-    ...(userRoles.isAdmin ? [
-      { text: 'Admin Dashboard', icon: <PersonIcon sx={{ color: 'secondary.main' }} />, path: '/admin-dashboard' },
-      { text: 'User Management', icon: <PersonIcon sx={{ color: 'secondary.main' }} />, path: '/admin-user-management' }
-    ] : []),
   ];
 
   return (
@@ -150,42 +121,10 @@ const Layout = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => navigate('/')}>
             CareerSmart India
           </Typography>
           <ThemeToggle />
-          <div>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <Avatar src={currentUser?.photoURL} alt={currentUser?.displayName || currentUser?.email} />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>
-                Profile
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            </Menu>
-          </div>
         </Toolbar>
       </AppBarStyled>
       <Drawer
@@ -217,13 +156,6 @@ const Layout = () => {
               </ListItemButton>
             </ListItem>
           ))}
-          <Divider />
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleLogout}>
-              <ListItemIcon><LogoutIcon /></ListItemIcon>
-              <ListItemText primary="Logout" />
-            </ListItemButton>
-          </ListItem>
         </List>
       </Drawer>
       <Main open={open}>

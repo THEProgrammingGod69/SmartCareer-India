@@ -60,10 +60,10 @@ import {
   Save,
   Refresh,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 
 const MockInterview = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [jobTitle, setJobTitle] = useState('');

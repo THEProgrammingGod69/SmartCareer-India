@@ -38,11 +38,12 @@ import {
   Lightbulb,
   BookmarkBorder,
   BookmarkAdded,
+  BarChart,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 
 const LearningPath = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const [loading, setLoading] = useState(false);
   const [careerGoal, setCareerGoal] = useState('');
   const [currentSkills, setCurrentSkills] = useState([]);
