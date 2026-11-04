@@ -672,17 +672,12 @@ const CareerQuiz = () => {
                       p: 2, 
                       borderLeft: answers[currentQuestion.id] === option.value ? 
                         `4px solid ${theme.palette.primary.main}` : '4px solid transparent',
-                      transition: 'all 0.3s ease',
-                      borderRadius: 2,
-                      backdropFilter: 'blur(8px)',
-                      background: answers[currentQuestion.id] === option.value ? 
-                        'rgba(58, 134, 255, 0.1)' : 'rgba(31, 41, 55, 0.5)',
-                      boxShadow: answers[currentQuestion.id] === option.value ? 
-                        '0 0 15px rgba(58, 134, 255, 0.3)' : 'none',
+                      transition: 'background-color 0.15s ease, border-color 0.15s ease',
+                      borderRadius: '10px',
+                      bgcolor: answers[currentQuestion.id] === option.value ? 'action.selected' : 'background.paper',
+                      boxShadow: 'none',
                       '&:hover': {
-                        backgroundColor: 'rgba(58, 134, 255, 0.08)',
-                        transform: 'translateX(5px)',
-                        boxShadow: '0 0 10px rgba(58, 134, 255, 0.2)'
+                        bgcolor: 'action.hover',
                       }
                     }}
                   >
@@ -792,25 +787,11 @@ const CareerQuiz = () => {
         <Paper elevation={3} sx={{ 
           p: 4, 
           mt: 4, 
-          borderRadius: 2,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          borderRadius: '14px',
           overflow: 'hidden',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(31, 41, 55, 0.7)',
-          transition: 'all 0.3s ease-in-out',
-          '&:hover': {
-            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.3)',
-            transform: 'translateY(-5px)'
-          }
         }}>
           <Typography variant="h4" align="center" gutterBottom sx={{
-            fontWeight: 'bold',
-            background: `linear-gradient(45deg, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '0.5px',
-            textShadow: '0 0 20px rgba(58, 134, 255, 0.3)',
+            fontWeight: 700,
             mb: 2,
           }}>
             Career Discovery Quiz
@@ -824,17 +805,7 @@ const CareerQuiz = () => {
             <LinearProgress 
               variant="determinate" 
               value={progressPercentage} 
-              sx={{ 
-                height: 10, 
-                borderRadius: 10,
-                background: 'rgba(255, 255, 255, 0.1)',
-                '& .MuiLinearProgress-bar': {
-                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  borderRadius: 10,
-                  transition: 'transform 0.8s ease',
-                  boxShadow: '0 0 10px rgba(58, 134, 255, 0.5)'
-                }
-              }} 
+              sx={{ height: 8 }} 
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
               <Typography variant="body2" color="text.secondary">
@@ -979,17 +950,8 @@ const CareerQuiz = () => {
                   endIcon={isLastQuestion ? null : <ArrowForward />}
                   disabled={!isQuestionAnswered}
                   sx={{ 
-                    borderRadius: 28,
                     px: 3,
                     py: 1,
-                    background: 'linear-gradient(90deg, #3a86ff 0%, #8b5cf6 100%)',
-                    boxShadow: '0 0 15px rgba(58, 134, 255, 0.3)',
-                    transition: 'all 0.3s ease',
-                    '&:hover:not(:disabled)': {
-                      transform: 'translateX(5px)',
-                      boxShadow: '0 0 20px rgba(58, 134, 255, 0.5)',
-                      background: 'linear-gradient(90deg, #3a86ff 30%, #8b5cf6 100%)'
-                    }
                   }}
                 >
                   {isLastQuestion ? 'Submit' : 'Next'}

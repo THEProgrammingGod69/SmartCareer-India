@@ -18,29 +18,28 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  SpaceDashboard as DashboardIcon,
-  Quiz as QuizIcon,
-  Explore as ExploreIcon,
+  SpaceDashboardOutlined as DashboardIcon,
+  QuizOutlined as QuizIcon,
+  ExploreOutlined as ExploreIcon,
   TrendingUp as TrendingUpIcon,
-  Psychology as PsychologyIcon,
-  Person as PersonIcon,
-  WorkspacePremium as PremiumIcon,
-  EmojiEvents as EmojiEventsIcon,
-  RecordVoiceOver as InterviewIcon,
-  Description as ResumeIcon,
-  Insights as InsightsIcon,
+  PsychologyOutlined as PsychologyIcon,
+  PersonOutline as PersonIcon,
+  WorkspacePremiumOutlined as PremiumIcon,
+  EmojiEventsOutlined as EmojiEventsIcon,
+  RecordVoiceOverOutlined as InterviewIcon,
+  DescriptionOutlined as ResumeIcon,
+  InsightsOutlined as InsightsIcon,
   SwapHoriz as SwitchIcon,
-  Balance as BalanceIcon,
-  Route as RouteIcon,
-  BatteryAlert as BurnoutIcon,
-  School as SchoolIcon,
-  AutoGraph as SkillIcon,
+  BalanceOutlined as BalanceIcon,
+  RouteOutlined as RouteIcon,
+  BatteryAlertOutlined as BurnoutIcon,
+  SchoolOutlined as SchoolIcon,
+  AutoGraphOutlined as SkillIcon,
 } from '@mui/icons-material';
 import ThemeToggle from '../ThemeToggle';
 import BrandLogo from '../BrandLogo';
-import { brand } from '../../contexts/ThemeContext';
 
-const drawerWidth = 272;
+const drawerWidth = 260;
 
 const navSections = [
   {
@@ -59,7 +58,7 @@ const navSections = [
     ],
   },
   {
-    title: 'Grow with AI',
+    title: 'Grow',
     items: [
       { text: 'AI Coach', icon: <PsychologyIcon />, path: '/ai-coach' },
       { text: 'Challenges', icon: <EmojiEventsIcon />, path: '/challenges' },
@@ -68,7 +67,7 @@ const navSections = [
     ],
   },
   {
-    title: 'Premium Suite',
+    title: 'Premium',
     items: [
       { text: 'Premium Features', icon: <PremiumIcon />, path: '/premium-features' },
       { text: 'Mock Interview', icon: <InterviewIcon />, path: '/premium/mock-interview' },
@@ -89,8 +88,13 @@ const pageTitleFor = (pathname) => {
   if (match) return match.text;
   if (pathname.startsWith('/career/')) return 'Career Details';
   if (pathname.startsWith('/quiz-results')) return 'Quiz Results';
-  if (pathname.startsWith('/premium/')) return 'Premium Suite';
+  if (pathname.startsWith('/premium/')) return 'Premium';
   return 'SmartCareer India';
+};
+
+const sectionFor = (pathname) => {
+  const section = navSections.find((s) => s.items.some((i) => i.path === pathname));
+  return section ? section.title : 'App';
 };
 
 const Main = styled('main')(({ theme }) => ({
@@ -118,17 +122,14 @@ const Layout = () => {
 
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ px: 2.5, height: 72, display: 'flex', alignItems: 'center' }}>
-        <BrandLogo size={38} onClick={() => navigate('/')} />
+      <Box sx={{ px: 2.5, height: 64, display: 'flex', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <BrandLogo size={28} onClick={() => navigate('/')} />
       </Box>
 
       <Box sx={{ flex: 1, overflowY: 'auto', px: 1.5, pb: 2 }}>
         {navSections.map((section) => (
-          <Box key={section.title} sx={{ mt: 2 }}>
-            <Typography
-              variant="overline"
-              sx={{ px: 1.5, color: 'text.secondary', fontSize: 10.5, opacity: 0.8 }}
-            >
+          <Box key={section.title} sx={{ mt: 2.25 }}>
+            <Typography variant="overline" sx={{ px: 1.25, color: 'text.secondary', display: 'block', lineHeight: 2 }}>
               {section.title}
             </Typography>
             <List dense disablePadding>
@@ -139,27 +140,13 @@ const Layout = () => {
                     key={item.path}
                     selected={selected}
                     onClick={() => navigate(item.path)}
-                    sx={{
-                      my: 0.25,
-                      py: 0.9,
-                      position: 'relative',
-                      '&.Mui-selected::before': {
-                        content: '""',
-                        position: 'absolute',
-                        left: 0,
-                        top: 8,
-                        bottom: 8,
-                        width: 3,
-                        borderRadius: '3px',
-                        backgroundImage: brand.gradient,
-                      },
-                    }}
+                    sx={{ my: 0.25, py: 0.75, px: 1.25 }}
                   >
                     <ListItemIcon
                       sx={{
-                        minWidth: 38,
+                        minWidth: 34,
                         color: selected ? 'primary.main' : 'text.secondary',
-                        '& svg': { fontSize: 20 },
+                        '& svg': { fontSize: 19 },
                       }}
                     >
                       {item.icon}
@@ -168,7 +155,7 @@ const Layout = () => {
                       primary={item.text}
                       primaryTypographyProps={{
                         fontSize: 14,
-                        fontWeight: selected ? 700 : 500,
+                        fontWeight: selected ? 600 : 500,
                         color: selected ? 'text.primary' : 'text.secondary',
                       }}
                     />
@@ -180,6 +167,15 @@ const Layout = () => {
         ))}
       </Box>
 
+      <Box sx={{ px: 2.5, py: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1.25 }}>
+        <Avatar sx={{ width: 30, height: 30 }}>
+          <PersonIcon sx={{ fontSize: 18 }} />
+        </Avatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>Guest</Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>All features unlocked</Typography>
+        </Box>
+      </Box>
     </Box>
   );
 
@@ -193,43 +189,29 @@ const Layout = () => {
           transition: muiTheme.transitions.create(['margin', 'width']),
         }}
       >
-        <Toolbar sx={{ minHeight: { xs: 64, md: 72 }, gap: 1.5 }}>
+        <Toolbar sx={{ minHeight: { xs: 60, md: 64 }, gap: 1.5 }}>
           <IconButton aria-label="toggle navigation" onClick={handleDrawerToggle} edge="start" sx={{ color: 'text.secondary' }}>
             <MenuIcon />
           </IconButton>
-          {isMobile && <BrandLogo size={30} showText={false} onClick={() => navigate('/')} />}
-          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' }, lineHeight: 1.2 }}>
-              SmartCareer India
+          {isMobile && <BrandLogo size={26} showText={false} onClick={() => navigate('/')} />}
+          <Box sx={{ flexGrow: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: 'text.secondary', fontSize: 14 }}>
+              {sectionFor(pathname)}
             </Typography>
-            <Typography variant="h6" noWrap sx={{ fontSize: { xs: 16, md: 19 }, lineHeight: 1.3 }}>
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: 'text.secondary', opacity: 0.5, fontSize: 14 }}>/</Typography>
+            <Typography noWrap sx={{ fontSize: 14.5, fontWeight: 600 }}>
               {pageTitleFor(pathname)}
             </Typography>
           </Box>
+          <ThemeToggle />
           <Button
             variant="contained"
             size="small"
-            startIcon={<QuizIcon />}
             onClick={() => navigate('/career-quiz')}
             sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
           >
             Take the Career Quiz
           </Button>
-          <ThemeToggle />
-          <Avatar
-            onClick={() => navigate('/profile')}
-            sx={{
-              width: 36,
-              height: 36,
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 700,
-              backgroundImage: brand.gradient,
-              color: '#fff',
-            }}
-          >
-            <PersonIcon fontSize="small" />
-          </Avatar>
         </Toolbar>
       </AppBar>
 
@@ -250,8 +232,8 @@ const Layout = () => {
       </Drawer>
 
       <Main>
-        <Toolbar sx={{ minHeight: { xs: 64, md: 72 } }} />
-        <Box sx={{ animation: 'sc-fade-up .45s ease both' }} key={pathname}>
+        <Toolbar sx={{ minHeight: { xs: 60, md: 64 } }} />
+        <Box sx={{ animation: 'sc-fade .25s ease both' }} key={pathname}>
           <Outlet />
         </Box>
       </Main>

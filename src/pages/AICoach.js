@@ -280,7 +280,7 @@ const AICoach = () => {
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ p: 2, backgroundImage: 'linear-gradient(135deg, #7C5CFF 0%, #22D3EE 100%)', color: 'white' }}>
+            <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h6">
                 Career Coach Chat
               </Typography>
@@ -322,8 +322,8 @@ const AICoach = () => {
                       elevation={1} 
                       sx={{ 
                         p: 2, 
-                        bgcolor: message.sender === 'user' ? 'transparent' : 'action.hover',
-                        backgroundImage: message.sender === 'user' ? 'linear-gradient(135deg, #7C5CFF 0%, #22D3EE 100%)' : 'none',
+                        bgcolor: message.sender === 'user' ? 'text.primary' : 'action.hover',
+                        border: 'none',
                         borderRadius: '16px',
                       }}
                     >
@@ -331,10 +331,10 @@ const AICoach = () => {
                         primary={message.text} 
                         secondary={new Date(message.timestamp).toLocaleTimeString()} 
                         primaryTypographyProps={{
-                          color: message.sender === 'user' ? 'white' : 'text.primary',
+                          color: message.sender === 'user' ? 'background.paper' : 'text.primary',
                         }}
                         secondaryTypographyProps={{
-                          color: message.sender === 'user' ? 'white' : 'text.secondary',
+                          color: message.sender === 'user' ? 'background.default' : 'text.secondary',
                           fontSize: '0.75rem',
                         }}
                       />
