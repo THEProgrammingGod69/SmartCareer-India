@@ -6,7 +6,7 @@ const geminiService = {
     // For now, we'll use a simple pattern matching approach
     const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+    if (/\b(hello|hi|hey)\b/.test(lowerMessage)) {
       return "Hello! I'm your AI Career Coach. How can I help with your career journey today?";
     } else if (lowerMessage.includes('resume') || lowerMessage.includes('cv')) {
       return "For a standout resume, focus on quantifiable achievements rather than just listing responsibilities. Use action verbs and tailor your resume for each job application. Would you like specific tips for your industry?";

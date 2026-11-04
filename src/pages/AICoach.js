@@ -35,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import geminiService from '../services/geminiService';
 import llamaService from '../services/llamaService';
+import { checkLiveCoach, askLiveCoach } from '../services/liveCoachService';
 import { useLocalUser } from '../utils/localUser';
 import { useNavigate } from 'react-router-dom';
 
@@ -91,6 +92,7 @@ const AICoach = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [useLlama, setUseLlama] = useState(true); // Default to Llama for premium users
   const [modelInfo, setModelInfo] = useState(null);
+  const [live, setLive] = useState({ available: false, checked: false, label: '' });
   const messagesEndRef = useRef(null);
   const { currentUser, userRoles } = useLocalUser();
   const navigate = useNavigate();
@@ -109,24 +111,34 @@ const AICoach = () => {
   }, [messages]);
 
   useEffect(() => {
+    let cancelled = false;
     // Get model info
     if (isPremium) {
       setModelInfo(llamaService.getModelInfo());
     }
-    
-    // Add initial greeting message
-    setTimeout(() => {
-      const initialMessage = isPremium ?
-        `Hello ${currentUser?.displayName || 'there'}! I'm your AI Career Coach powered by Llama 4 Maverick. How can I assist with your career journey today?` :
-        sampleResponses.greeting[0];
-        
+
+    // Check whether the live AI (Cloudflare Workers AI) is connected, then greet
+    checkLiveCoach().then((status) => {
+      if (cancelled) return;
+      setLive({ ...status, checked: true });
+      const name = currentUser?.displayName || 'there';
+      const initialMessage = status.available
+        ? `Hello ${name}! I'm your AI Career Coach, running live on ${status.label}. Ask me anything about careers, courses, entrance exams, skills or interviews.`
+        : isPremium
+          ? `Hello ${name}! I'm your AI Career Coach. How can I assist with your career journey today?`
+          : sampleResponses.greeting[0];
+
       setMessages([{
         text: initialMessage,
         sender: 'ai',
         timestamp: new Date(),
-        model: isPremium ? 'llama' : 'gemini'
+        model: status.available ? 'live' : (isPremium ? 'llama' : 'gemini')
       }]);
-    }, 1000);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isPremium, currentUser]);
 
   const handleSend = async () => {
@@ -144,6 +156,26 @@ const AICoach = () => {
     setIsTyping(true);
 
     try {
+      // 1) Real AI via Cloudflare Workers AI, when connected
+      if (live.available) {
+        try {
+          const history = messages.map((msg) => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text,
+          }));
+          const result = await askLiveCoach(userMessage.text, history, { name: currentUser?.displayName || '' });
+          setLive((prev) => ({ ...prev, label: result.label }));
+          setMessages((prev) => [
+            ...prev,
+            { text: result.text, sender: 'ai', timestamp: new Date(), model: 'live', label: result.label },
+          ]);
+          return;
+        } catch (liveError) {
+          console.warn('Live AI unavailable, using built-in answers', liveError);
+        }
+      }
+
+      // 2) Built-in answers (offline fallback)
       let response;
       let model = 'gemini';
       
@@ -172,7 +204,7 @@ const AICoach = () => {
       }
       
       const aiResponse = {
-        text: response,
+        text: String(response).replace(/\*\*(.*?)\*\*/g, '$1'),
         sender: 'ai',
         timestamp: new Date(),
         model: model
@@ -207,11 +239,11 @@ const AICoach = () => {
           <Typography variant="h4">
             AI Career Coach
             {isPremium && (
-              <Tooltip title="Premium AI Model">
+              <Tooltip title={live.available ? 'Answers are generated live by Cloudflare Workers AI' : 'Live AI is not connected - using built-in answers'}>
                 <Chip 
                   icon={<StarIcon />} 
-                  label="Llama 4 Maverick" 
-                  color="primary" 
+                  label={live.available ? `Live AI · ${live.label}` : (live.checked ? 'Built-in answers' : 'Connecting…')} 
+                  color={live.available ? 'success' : 'primary'}  
                   size="small" 
                   sx={{ ml: 2 }} 
                 />
@@ -219,7 +251,7 @@ const AICoach = () => {
             )}
           </Typography>
           
-          {isPremium && modelInfo && (
+          {isPremium && modelInfo && live.checked && !live.available && (
             <FormControlLabel
               control={
                 <Switch
@@ -228,7 +260,7 @@ const AICoach = () => {
                   color="primary"
                 />
               }
-              label={useLlama ? "Using Llama 4 Maverick" : "Using Gemini"}
+              label={useLlama ? 'Enhanced answers' : 'Basic answers'}
             />
           )}
           
@@ -247,7 +279,7 @@ const AICoach = () => {
         <Typography variant="body1" color="text.secondary" paragraph>
           Chat with our AI coach for personalized career advice, resume tips, and interview preparation.
           {isPremium && useLlama && (
-            <Tooltip title="Llama 4 Maverick Features">
+            <Tooltip title="Coach features">
               <IconButton size="small" sx={{ ml: 1 }}>
                 <InfoIcon fontSize="small" />
               </IconButton>
@@ -258,7 +290,7 @@ const AICoach = () => {
         {isPremium && modelInfo && (
           <Box sx={{ mt: 2, mb: 3 }}>
             <Typography variant="subtitle2" gutterBottom>
-              Llama 4 Maverick Capabilities:
+              Coach capabilities:
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {modelInfo.capabilities.map((capability, index) => (
@@ -331,6 +363,7 @@ const AICoach = () => {
                         primary={message.text} 
                         secondary={new Date(message.timestamp).toLocaleTimeString()} 
                         primaryTypographyProps={{
+                          sx: { whiteSpace: 'pre-wrap', lineHeight: 1.6 },
                           color: message.sender === 'user' ? 'background.paper' : 'text.primary',
                         }}
                         secondaryTypographyProps={{

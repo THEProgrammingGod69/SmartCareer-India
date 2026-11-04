@@ -18,8 +18,8 @@ const llamaService = {
       const lowerMessage = message.toLowerCase();
       
       // Enhanced responses compared to the basic geminiService
-      if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-        return `Hello ${userProfile.displayName || 'there'}! I'm your AI Career Coach powered by Llama 4 Maverick. I have access to the latest career trends and can provide personalized guidance based on your profile and interests. How can I assist with your career journey today?`;
+      if (/\b(hello|hi|hey)\b/.test(lowerMessage)) {
+        return `Hello ${userProfile.displayName || 'there'}! I'm your AI Career Coach. I can help with career choices, skills, resumes and interviews. How can I assist with your career journey today?`;
       } 
       else if (lowerMessage.includes('resume') || lowerMessage.includes('cv')) {
         return `Based on your profile and the current job market trends, I recommend focusing on these key elements for your resume:\n\n1. **Highlight your ${userProfile.skills?.slice(0, 3).join(', ') || 'technical skills'}** - These are in high demand right now\n2. **Quantify your achievements** - Use metrics to demonstrate impact\n3. **Tailor for ATS systems** - Use industry-specific keywords\n4. **Include a strong professional summary** - Make it concise and impactful\n\nWould you like me to analyze your current resume or help you draft specific sections?`;
