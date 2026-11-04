@@ -41,7 +41,7 @@ import {
   Refresh,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 import { analyzeCognitiveFit } from '../../utils/premiumCareerFeatures';
 
 // Add new quiz sections constant
@@ -483,7 +483,7 @@ const quizSections = [
 ];
 
 const CognitiveFit = () => {
-  const { currentUser, userRoles } = useAuth();
+  const { currentUser, userRoles } = useLocalUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [cognitiveProfile, setCognitiveProfile] = useState(null);

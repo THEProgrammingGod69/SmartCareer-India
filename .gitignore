@@ -93,3 +93,9 @@ node_modules/
 *.gz
 *.iso
 *.dmg
+
+# Production build output
+/build
+
+# Never commit service-account keys
+*-firebase-adminsdk-*.json

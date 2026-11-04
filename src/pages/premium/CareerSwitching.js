@@ -47,7 +47,7 @@ import {
   Lightbulb,
   Close,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 import { useNavigate } from 'react-router-dom';
 import { allCareers } from '../../utils/premiumCareerFeatures';
 
@@ -267,7 +267,7 @@ const getEducationRecommendations = (currentCareer, targetCareer) => {
 };
 
 const CareerSwitching = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const navigate = useNavigate();
   
   // Career selection states

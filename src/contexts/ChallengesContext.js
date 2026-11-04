@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import { useLocalUser } from '../utils/localUser';
 import {
-  initializeChallengesInFirestore,
   getChallengesByCareerInterest,
   getRecommendedChallenges,
   getUserProgress,
@@ -17,26 +16,13 @@ const ChallengesContext = createContext();
 export const useChallenges = () => useContext(ChallengesContext);
 
 export const ChallengesProvider = ({ children }) => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const [userProgress, setUserProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [completedChallenges, setCompletedChallenges] = useState([]);
   const [recommendedChallenges, setRecommendedChallenges] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
-
-  // Initialize challenges in Firestore when the app starts
-  useEffect(() => {
-    const initializeChallenges = async () => {
-      try {
-        await initializeChallengesInFirestore();
-      } catch (error) {
-        console.error('Failed to initialize challenges:', error);
-      }
-    };
-
-    initializeChallenges();
-  }, []);
 
   // Load user progress when user changes
   useEffect(() => {
@@ -83,7 +69,7 @@ export const ChallengesProvider = ({ children }) => {
   // Submit a challenge
   const handleSubmitChallenge = async (challengeId, submission) => {
     if (!currentUser) {
-      throw new Error('You must be logged in to submit a challenge');
+      throw new Error('Unable to submit challenge right now');
     }
 
     try {

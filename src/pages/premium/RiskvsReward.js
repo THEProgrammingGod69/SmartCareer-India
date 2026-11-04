@@ -37,8 +37,8 @@ import {
   Announcement,
   Balance,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
-import { sampleCareers } from '../ExploreCareer_fixed';
+import { useLocalUser } from '../../utils/localUser';
+import { sampleCareers } from '../ExploreCareer';
 
 const riskFactors = {
   marketDemand: {
@@ -162,7 +162,7 @@ const calculateRewardScore = (career, weights = {}) => {
 
 const RiskvsReward = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
   const [careerAnalysis, setCareerAnalysis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [weights, setWeights] = useState({

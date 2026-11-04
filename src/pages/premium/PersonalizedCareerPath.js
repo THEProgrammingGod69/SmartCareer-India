@@ -194,7 +194,6 @@ const PersonalizedCareerPath = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e0e7ff 0%, #fff 100%)',
         py: 6
       }}
     >
@@ -274,7 +273,6 @@ const PersonalizedCareerPath = () => {
             sx={{
               mt: 2,
               width: '100%',
-              background: 'linear-gradient(90deg, #6366f1 0%, #818cf8 100%)',
               fontWeight: 600,
               letterSpacing: 1
             }}

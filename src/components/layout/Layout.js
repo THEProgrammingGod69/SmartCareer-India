@@ -1,234 +1,243 @@
-import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { styled, createTheme } from '@mui/material/styles';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { styled, useTheme as useMuiTheme } from '@mui/material/styles';
 import {
   AppBar,
+  Avatar,
   Box,
-  CssBaseline,
+  Button,
   Drawer,
   IconButton,
   List,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Toolbar,
   Typography,
-  Avatar,
-  Menu,
-  MenuItem,
-  Divider,
   useMediaQuery,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Quiz as QuizIcon,
-  Explore as ExploreIcon,
+  SpaceDashboardOutlined as DashboardIcon,
+  QuizOutlined as QuizIcon,
+  ExploreOutlined as ExploreIcon,
   TrendingUp as TrendingUpIcon,
-  Psychology as PsychologyIcon,
-  Person as PersonIcon,
-  Logout as LogoutIcon,
-  Star as StarIcon,
-  EmojiEvents as EmojiEventsIcon,
+  PsychologyOutlined as PsychologyIcon,
+  PersonOutline as PersonIcon,
+  WorkspacePremiumOutlined as PremiumIcon,
+  EmojiEventsOutlined as EmojiEventsIcon,
+  RecordVoiceOverOutlined as InterviewIcon,
+  DescriptionOutlined as ResumeIcon,
+  InsightsOutlined as InsightsIcon,
+  SwapHoriz as SwitchIcon,
+  BalanceOutlined as BalanceIcon,
+  RouteOutlined as RouteIcon,
+  BatteryAlertOutlined as BurnoutIcon,
+  SchoolOutlined as SchoolIcon,
+  AutoGraphOutlined as SkillIcon,
+  VolunteerActivismOutlined as SevaIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
+import BrandLogo from '../BrandLogo';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: 0,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: drawerWidth,
-    }),
-  }),
-);
+const navSections = [
+  {
+    title: 'Overview',
+    items: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+      { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
+    ],
+  },
+  {
+    title: 'Discover',
+    items: [
+      { text: 'Career Quiz', icon: <QuizIcon />, path: '/career-quiz' },
+      { text: 'Explore Careers', icon: <ExploreIcon />, path: '/explore-careers' },
+      { text: 'Career Trends', icon: <TrendingUpIcon />, path: '/career-trends' },
+      { text: 'Scholarships & Schemes', icon: <SevaIcon />, path: '/scholarships' },
+    ],
+  },
+  {
+    title: 'Grow',
+    items: [
+      { text: 'AI Coach', icon: <PsychologyIcon />, path: '/ai-coach' },
+      { text: 'Challenges', icon: <EmojiEventsIcon />, path: '/challenges' },
+      { text: 'Learning Path', icon: <SchoolIcon />, path: '/learning-path' },
+      { text: 'Skill Tracker', icon: <SkillIcon />, path: '/skill-tracker' },
+    ],
+  },
+  {
+    title: 'Premium',
+    items: [
+      { text: 'Premium Features', icon: <PremiumIcon />, path: '/premium-features' },
+      { text: 'Mock Interview', icon: <InterviewIcon />, path: '/premium/mock-interview' },
+      { text: 'Smart Resume', icon: <ResumeIcon />, path: '/premium/smart-resume' },
+      { text: 'Cognitive Fit', icon: <InsightsIcon />, path: '/premium/cognitive-fit' },
+      { text: 'Career Switching', icon: <SwitchIcon />, path: '/premium/career-switching' },
+      { text: 'Risk vs Reward', icon: <BalanceIcon />, path: '/premium/risk-vs-reward' },
+      { text: 'Personalized Path', icon: <RouteIcon />, path: '/premium/personalized-career-path' },
+      { text: 'Burnout Prediction', icon: <BurnoutIcon />, path: '/premium/burnout-prediction' },
+    ],
+  },
+];
 
-const AppBarStyled = styled(AppBar, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-      width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: `${drawerWidth}px`,
-      transition: theme.transitions.create(['margin', 'width'], {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-    }),
-  }),
-);
+const allItems = navSections.flatMap((s) => s.items);
 
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-  justifyContent: 'flex-end',
+const pageTitleFor = (pathname) => {
+  const match = allItems.find((i) => pathname === i.path);
+  if (match) return match.text;
+  if (pathname.startsWith('/career/')) return 'Career Details';
+  if (pathname.startsWith('/quiz-results')) return 'Quiz Results';
+  if (pathname.startsWith('/premium/')) return 'Premium';
+  return 'SmartCareer India';
+};
+
+const sectionFor = (pathname) => {
+  const section = navSections.find((s) => s.items.some((i) => i.path === pathname));
+  return section ? section.title : 'App';
+};
+
+const Main = styled('main')(({ theme }) => ({
+  flexGrow: 1,
+  minWidth: 0,
+  padding: theme.spacing(3),
+  [theme.breakpoints.down('sm')]: { padding: theme.spacing(2) },
 }));
 
 const Layout = () => {
-  const { darkMode } = useTheme();
-  const theme = darkMode ? createTheme({
-    palette: {
-      mode: 'dark',
-    },
-  }) : createTheme({
-    palette: {
-      mode: 'light',
-    },
-  });
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [open, setOpen] = useState(!isMobile);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const { currentUser, logout, userRoles } = useAuth();
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'), { noSsr: true });
+  const [desktopOpen, setDesktopOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
-  const handleDrawerToggle = () => {
-    setOpen(!open);
-  };
+  useEffect(() => {
+    setMobileOpen(false);
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const open = isMobile ? mobileOpen : desktopOpen;
+  const handleDrawerToggle = () => (isMobile ? setMobileOpen(!mobileOpen) : setDesktopOpen(!desktopOpen));
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const drawerContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ px: 2.5, height: 64, display: 'flex', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <BrandLogo size={28} onClick={() => navigate('/')} />
+      </Box>
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Failed to log out', error);
-    }
-  };
+      <Box sx={{ flex: 1, overflowY: 'auto', px: 1.5, pb: 2 }}>
+        {navSections.map((section) => (
+          <Box key={section.title} sx={{ mt: 2.25 }}>
+            <Typography variant="overline" sx={{ px: 1.25, color: 'text.secondary', display: 'block', lineHeight: 2 }}>
+              {section.title}
+            </Typography>
+            <List dense disablePadding>
+              {section.items.map((item) => {
+                const selected = pathname === item.path;
+                return (
+                  <ListItemButton
+                    key={item.path}
+                    selected={selected}
+                    onClick={() => navigate(item.path)}
+                    sx={{ my: 0.25, py: 0.75, px: 1.25 }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 34,
+                        color: selected ? 'primary.main' : 'text.secondary',
+                        '& svg': { fontSize: 19 },
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.text}
+                      primaryTypographyProps={{
+                        fontSize: 14,
+                        fontWeight: selected ? 600 : 500,
+                        color: selected ? 'text.primary' : 'text.secondary',
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Box>
+        ))}
+      </Box>
 
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Career Quiz', icon: <QuizIcon />, path: '/career-quiz' },
-    { text: 'Explore Careers', icon: <ExploreIcon />, path: '/explore-careers' },
-    { text: 'Career Trends', icon: <TrendingUpIcon />, path: '/career-trends' },
-    { text: 'AI Coach', icon: <PsychologyIcon />, path: '/ai-coach' },
-    { text: 'Premium Features', icon: <StarIcon />, path: '/premium-features' },
-    { text: 'Challenges', icon: <EmojiEventsIcon />, path: '/challenges' },
-    { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
-    // Admin Dashboard and User Management - only visible to admin users
-    ...(userRoles.isAdmin ? [
-      { text: 'Admin Dashboard', icon: <PersonIcon sx={{ color: 'secondary.main' }} />, path: '/admin-dashboard' },
-      { text: 'User Management', icon: <PersonIcon sx={{ color: 'secondary.main' }} />, path: '/admin-user-management' }
-    ] : []),
-  ];
+      <Box sx={{ px: 2.5, py: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1.25 }}>
+        <Avatar sx={{ width: 30, height: 30 }}>
+          <PersonIcon sx={{ fontSize: 18 }} />
+        </Avatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>Guest</Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>All features unlocked</Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBarStyled position="fixed" open={open}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerToggle}
-            edge="start"
-            sx={{ mr: 2 }}
-          >
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { md: desktopOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
+          ml: { md: desktopOpen ? `${drawerWidth}px` : 0 },
+          transition: muiTheme.transitions.create(['margin', 'width']),
+        }}
+      >
+        <Toolbar sx={{ minHeight: { xs: 60, md: 64 }, gap: 1.5 }}>
+          <IconButton aria-label="toggle navigation" onClick={handleDrawerToggle} edge="start" sx={{ color: 'text.secondary' }}>
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            CareerSmart India
-          </Typography>
+          {isMobile && <BrandLogo size={26} showText={false} onClick={() => navigate('/')} />}
+          <Box sx={{ flexGrow: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: 'text.secondary', fontSize: 14 }}>
+              {sectionFor(pathname)}
+            </Typography>
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: 'text.secondary', opacity: 0.5, fontSize: 14 }}>/</Typography>
+            <Typography noWrap sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              {pageTitleFor(pathname)}
+            </Typography>
+          </Box>
           <ThemeToggle />
-          <div>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <Avatar src={currentUser?.photoURL} alt={currentUser?.displayName || currentUser?.email} />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>
-                Profile
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            </Menu>
-          </div>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => navigate('/career-quiz')}
+            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+          >
+            Take the Career Quiz
+          </Button>
         </Toolbar>
-      </AppBarStyled>
+      </AppBar>
+
       <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
         variant={isMobile ? 'temporary' : 'persistent'}
         anchor="left"
         open={open}
         onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          width: isMobile || !desktopOpen ? 0 : drawerWidth,
+          flexShrink: 0,
+          transition: muiTheme.transitions.create('width'),
+          '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' },
+        }}
       >
-        <DrawerHeader>
-          <Typography variant="h6" sx={{ flexGrow: 1, ml: 2 }}>
-            Menu
-          </Typography>
-        </DrawerHeader>
-        <Divider />
-        <List>
-          {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton onClick={() => navigate(item.path)}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-          <Divider />
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleLogout}>
-              <ListItemIcon><LogoutIcon /></ListItemIcon>
-              <ListItemText primary="Logout" />
-            </ListItemButton>
-          </ListItem>
-        </List>
+        {drawerContent}
       </Drawer>
-      <Main open={open}>
-        <DrawerHeader />
-        <Outlet />
+
+      <Main>
+        <Toolbar sx={{ minHeight: { xs: 60, md: 64 } }} />
+        <Box sx={{ animation: 'sc-fade .25s ease both' }} key={pathname}>
+          <Outlet />
+        </Box>
       </Main>
     </Box>
   );

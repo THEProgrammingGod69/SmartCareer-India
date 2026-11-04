@@ -1,6 +1,5 @@
 // Career Challenges Data and Utility Functions
-import { db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
+import { loadLocal, saveLocal, getLocalProfile } from './localUser';
 
 // Career paths for categorizing challenges
 export const careerPaths = [
@@ -305,287 +304,115 @@ export const careerChallenges = [
   }
 ];
 
-// Challenge collection reference
-const challengesCollectionRef = collection(db, 'challenges');
+// ---------------------------------------------------------------------------
+// Progress is stored locally in the browser (no accounts / no backend).
+// ---------------------------------------------------------------------------
+const PROGRESS_KEY = 'smartcareer_challenge_progress';
+const SUBMISSIONS_KEY = 'smartcareer_challenge_submissions';
 
-// Initialize challenges in Firestore (should be called once during app setup)
-export const initializeChallengesInFirestore = async () => {
-  try {
-    // Check if challenges already exist
-    const q = query(challengesCollectionRef, where('id', '==', 1));
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-      // Challenges don't exist, add them
-      for (const challenge of careerChallenges) {
-        await setDoc(doc(challengesCollectionRef, challenge.id.toString()), {
-          ...challenge,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-      }
-      console.log('Challenges initialized in Firestore');
-      return true;
-    } else {
-      console.log('Challenges already exist in Firestore');
-      return false;
-    }
-  } catch (error) {
-    console.error('Error initializing challenges:', error);
-    return false;
-  }
-};
+const emptyProgress = () => ({
+  completedChallenges: [],
+  totalPoints: 0,
+  badges: [],
+  challengeHistory: [],
+});
+
+const readProgress = () => ({ ...emptyProgress(), ...loadLocal(PROGRESS_KEY, {}) });
+
+const findChallenge = (challengeId) =>
+  careerChallenges.find((c) => c.id.toString() === challengeId.toString());
 
 // Get challenges for a specific career interest
 export const getChallengesByCareerInterest = async (careerInterest) => {
-  try {
-    if (!careerInterest) {
-      // If no career interest specified, return all challenges
-      const querySnapshot = await getDocs(challengesCollectionRef);
-      return querySnapshot.docs.map(doc => doc.data());
-    }
-    
-    // Query challenges by career path
-    const q = query(challengesCollectionRef, where('careerPath', '==', careerInterest));
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-      // If no challenges found for this career path, return general challenges
-      const generalQ = query(challengesCollectionRef, where('careerPath', '==', 'General'));
-      const generalSnapshot = await getDocs(generalQ);
-      return generalSnapshot.docs.map(doc => doc.data());
-    }
-    
-    return querySnapshot.docs.map(doc => doc.data());
-  } catch (error) {
-    console.error('Error getting challenges by career interest:', error);
-    // Fallback to local data if Firebase query fails
-    return careerInterest 
-      ? careerChallenges.filter(challenge => challenge.careerPath === careerInterest || challenge.careerPath === 'General')
-      : careerChallenges;
-  }
+  if (!careerInterest) return careerChallenges;
+  const matches = careerChallenges.filter((c) => c.careerPath === careerInterest);
+  return matches.length > 0
+    ? matches
+    : careerChallenges.filter((c) => c.careerPath === 'General');
 };
 
-// Get recommended challenges for a user
-export const getRecommendedChallenges = async (userId, userPreferences) => {
-  try {
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    
-    // Get user's completed challenges
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      // If user document doesn't exist, return general challenges
-      const generalQ = query(challengesCollectionRef, where('careerPath', '==', 'General'), where('isPremium', '==', false));
-      const generalSnapshot = await getDocs(generalQ);
-      return generalSnapshot.docs.map(doc => doc.data());
-    }
-    
-    const userData = userDoc.data();
-    const completedChallengeIds = userData.completedChallenges || [];
-    const careerInterests = userPreferences?.careerInterests || userData.careerInterests || ['General'];
-    
-    // Query challenges based on career interests and not completed yet
-    let recommendedChallenges = [];
-    
-    // First, try to get challenges matching user's career interests
-    for (const interest of careerInterests) {
-      const q = query(
-        challengesCollectionRef, 
-        where('careerPath', '==', interest),
-        where('isPremium', '==', userData.isPremium || false) // Only show premium challenges if user has premium access
-      );
-      const querySnapshot = await getDocs(q);
-      const challenges = querySnapshot.docs
-        .map(doc => doc.data())
-        .filter(challenge => !completedChallengeIds.includes(challenge.id.toString()));
-      
-      recommendedChallenges = [...recommendedChallenges, ...challenges];
-      
-      // If we have enough recommendations, stop querying
-      if (recommendedChallenges.length >= 5) break;
-    }
-    
-    // If we don't have enough recommendations, add some general challenges
-    if (recommendedChallenges.length < 3) {
-      const generalQ = query(
-        challengesCollectionRef, 
-        where('careerPath', '==', 'General'),
-        where('isPremium', '==', userData.isPremium || false)
-      );
-      const generalSnapshot = await getDocs(generalQ);
-      const generalChallenges = generalSnapshot.docs
-        .map(doc => doc.data())
-        .filter(challenge => !completedChallengeIds.includes(challenge.id.toString()));
-      
-      recommendedChallenges = [...recommendedChallenges, ...generalChallenges];
-    }
-    
-    // Sort by difficulty (easy first)
-    recommendedChallenges.sort((a, b) => {
-      const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
-      return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-    });
-    
-    return recommendedChallenges.slice(0, 5); // Return top 5 recommendations
-  } catch (error) {
-    console.error('Error getting recommended challenges:', error);
-    // Fallback to local data if Firebase query fails
-    return careerChallenges.slice(0, 5);
+// Get recommended challenges (not yet completed, matching interests, easy first)
+export const getRecommendedChallenges = async (_userId, userPreferences) => {
+  const { completedChallenges } = readProgress();
+  const interests = userPreferences?.careerInterests || ['General'];
+  const notDone = (c) => !completedChallenges.includes(c.id.toString());
+
+  let recommended = careerChallenges.filter((c) => interests.includes(c.careerPath) && notDone(c));
+  if (recommended.length < 3) {
+    recommended = [
+      ...recommended,
+      ...careerChallenges.filter((c) => c.careerPath === 'General' && notDone(c) && !recommended.includes(c)),
+    ];
   }
+  if (recommended.length < 3) {
+    recommended = [...recommended, ...careerChallenges.filter((c) => notDone(c) && !recommended.includes(c))];
+  }
+
+  const difficultyOrder = { Easy: 1, Medium: 2, Hard: 3 };
+  recommended.sort((a, b) => (difficultyOrder[a.difficulty] || 2) - (difficultyOrder[b.difficulty] || 2));
+  return recommended.slice(0, 5);
 };
 
-// Get user progress
-export const getUserProgress = async (userId) => {
-  try {
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    
-    // Get user document from Firestore
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      // If user document doesn't exist, create it with initial progress
-      const initialProgress = {
-        completedChallenges: [],
-        totalPoints: 0,
-        badges: [],
-        level: 1,
-        challengeHistory: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      
-      await setDoc(userDocRef, {
-        ...initialProgress,
-        id: userId
-      });
-      
-      return initialProgress;
-    }
-    
-    // User document exists, get progress data
-    const userData = userDoc.data();
-    
-    // Calculate level based on points
-    const level = calculateLevel(userData.totalPoints || 0);
-    
-    return {
-      completedChallenges: userData.completedChallenges?.length || 0,
-      totalPoints: userData.totalPoints || 0,
-      badges: userData.badges || [],
-      level: level,
-      recentActivity: userData.challengeHistory?.slice(0, 5) || []
-    };
-  } catch (error) {
-    console.error('Error getting user progress:', error);
-    // Return default progress if there's an error
-    return {
-      completedChallenges: 0,
-      totalPoints: 0,
-      badges: [],
-      level: 1,
-      recentActivity: []
-    };
-  }
-};
-
-// Calculate user level based on points
+// Calculate level based on points
 const calculateLevel = (points) => {
   if (points < 100) return 1;
   if (points < 250) return 2;
   if (points < 500) return 3;
   if (points < 1000) return 4;
   if (points < 2000) return 5;
-  return Math.floor(points / 500) + 1; // Higher levels
+  return Math.floor(points / 500) + 1;
+};
+
+// Get the visitor's progress
+export const getUserProgress = async () => {
+  const progress = readProgress();
+  return {
+    completedChallenges: progress.completedChallenges.length,
+    totalPoints: progress.totalPoints,
+    badges: progress.badges,
+    level: calculateLevel(progress.totalPoints),
+    recentActivity: progress.challengeHistory.slice(-5).reverse(),
+  };
 };
 
 // Submit a challenge
-export const submitChallenge = async (userId, challengeId, submission) => {
-  try {
-    if (!userId || !challengeId) {
-      throw new Error('User ID and Challenge ID are required');
-    }
-    
-    // Get challenge details
-    const challengeDocRef = doc(db, 'challenges', challengeId.toString());
-    const challengeDoc = await getDoc(challengeDocRef);
-    
-    if (!challengeDoc.exists()) {
-      throw new Error('Challenge not found');
-    }
-    
-    const challengeData = challengeDoc.data();
-    
-    // Get user document
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    // Create user document if it doesn't exist
-    if (!userDoc.exists()) {
-      await setDoc(userDocRef, {
-        id: userId,
-        completedChallenges: [],
-        totalPoints: 0,
-        badges: [],
-        challengeHistory: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-    }
-    
-    // Create submission document
-    const submissionData = {
-      userId,
-      challengeId: challengeId.toString(),
-      challengeTitle: challengeData.title,
-      submissionContent: submission,
-      submissionType: challengeData.submissionType,
-      points: challengeData.points,
-      badge: challengeData.badge,
-      status: 'pending', // pending, approved, rejected
-      feedback: '',
-      submittedAt: serverTimestamp()
-    };
-    
-    // Add submission to submissions collection
-    const submissionRef = doc(collection(db, 'submissions'));
-    await setDoc(submissionRef, submissionData);
-    
-    // Update user document with submission
-    await updateDoc(userDocRef, {
-      completedChallenges: arrayUnion(challengeId.toString()),
-      totalPoints: increment(challengeData.points),
-      badges: arrayUnion(challengeData.badge),
-      challengeHistory: arrayUnion({
-        challengeId: challengeId.toString(),
-        challengeTitle: challengeData.title,
-        points: challengeData.points,
-        badge: challengeData.badge,
-        submittedAt: new Date().toISOString()
-      }),
-      updatedAt: serverTimestamp()
-    });
-    
-    return {
-      success: true,
-      message: 'Challenge submitted successfully!',
-      points: challengeData.points,
-      badge: challengeData.badge,
-      submissionId: submissionRef.id
-    };
-  } catch (error) {
-    console.error('Error submitting challenge:', error);
-    return {
-      success: false,
-      message: error.message || 'Failed to submit challenge. Please try again.'
-    };
+export const submitChallenge = async (_userId, challengeId, submission) => {
+  const challenge = challengeId != null ? findChallenge(challengeId) : null;
+  if (!challenge) {
+    return { success: false, message: 'Challenge not found' };
   }
+
+  const progress = readProgress();
+  const id = challenge.id.toString();
+  if (progress.completedChallenges.includes(id)) {
+    return { success: false, message: 'You have already completed this challenge.' };
+  }
+
+  const submittedAt = new Date().toISOString();
+  saveLocal(PROGRESS_KEY, {
+    completedChallenges: [...progress.completedChallenges, id],
+    totalPoints: progress.totalPoints + challenge.points,
+    badges: progress.badges.includes(challenge.badge) ? progress.badges : [...progress.badges, challenge.badge],
+    challengeHistory: [
+      ...progress.challengeHistory,
+      { challengeId: id, challengeTitle: challenge.title, points: challenge.points, badge: challenge.badge, submittedAt },
+    ],
+  });
+
+  const submissions = loadLocal(SUBMISSIONS_KEY, []);
+  const submissionId = `${id}-${Date.now()}`;
+  saveLocal(SUBMISSIONS_KEY, [
+    ...submissions,
+    { submissionId, challengeId: id, challengeTitle: challenge.title, submissionContent: submission, submittedAt },
+  ]);
+
+  return {
+    success: true,
+    message: 'Challenge submitted successfully!',
+    points: challenge.points,
+    badge: challenge.badge,
+    submissionId,
+  };
 };
 
 // Get a motivational message
@@ -602,94 +429,29 @@ export const getMotivationalMessage = () => {
     'Skills are built through consistent practice and challenges!',
     'Today\'s challenge is tomorrow\'s career advantage!'
   ];
-  
+
   return messages[Math.floor(Math.random() * messages.length)];
 };
 
 // Get challenges by skill
-export const getChallengesBySkill = async (skill) => {
-  try {
-    // This is a more complex query that would ideally use a custom index
-    // For now, we'll get all challenges and filter in memory
-    const querySnapshot = await getDocs(challengesCollectionRef);
-    const challenges = querySnapshot.docs.map(doc => doc.data());
-    
-    // Filter challenges that include the specified skill
-    return challenges.filter(challenge => 
-      challenge.skills && challenge.skills.includes(skill)
-    );
-  } catch (error) {
-    console.error('Error getting challenges by skill:', error);
-    // Fallback to local data
-    return careerChallenges.filter(challenge => 
-      challenge.skills && challenge.skills.includes(skill)
-    );
-  }
+export const getChallengesBySkill = async (skill) =>
+  careerChallenges.filter((c) => c.skills && c.skills.includes(skill));
+
+// Get the visitor's completed challenges
+export const getUserCompletedChallenges = async () => {
+  const { completedChallenges } = readProgress();
+  return completedChallenges.map(findChallenge).filter(Boolean);
 };
 
-// Get user's completed challenges
-export const getUserCompletedChallenges = async (userId) => {
-  try {
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    
-    // Get user document
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (!userDoc.exists()) {
-      return [];
-    }
-    
-    const userData = userDoc.data();
-    const completedChallengeIds = userData.completedChallenges || [];
-    
-    if (completedChallengeIds.length === 0) {
-      return [];
-    }
-    
-    // Get details of completed challenges
-    const completedChallenges = [];
-    
-    for (const challengeId of completedChallengeIds) {
-      const challengeDocRef = doc(db, 'challenges', challengeId);
-      const challengeDoc = await getDoc(challengeDocRef);
-      
-      if (challengeDoc.exists()) {
-        completedChallenges.push(challengeDoc.data());
-      }
-    }
-    
-    return completedChallenges;
-  } catch (error) {
-    console.error('Error getting completed challenges:', error);
-    return [];
-  }
-};
-
-// Get leaderboard
-export const getLeaderboard = async (limit = 10) => {
-  try {
-    // Get top users by points
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('totalPoints', '>', 0));
-    const querySnapshot = await getDocs(q);
-    
-    const leaderboardData = querySnapshot.docs
-      .map(doc => ({
-        userId: doc.id,
-        displayName: doc.data().displayName || 'Anonymous User',
-        totalPoints: doc.data().totalPoints || 0,
-        completedChallenges: doc.data().completedChallenges?.length || 0,
-        level: calculateLevel(doc.data().totalPoints || 0)
-      }))
-      .sort((a, b) => b.totalPoints - a.totalPoints)
-      .slice(0, limit);
-    
-    return leaderboardData;
-  } catch (error) {
-    console.error('Error getting leaderboard:', error);
-    return [];
-  }
+// Leaderboard: without accounts there is only this browser's visitor
+export const getLeaderboard = async () => {
+  const progress = readProgress();
+  if (progress.totalPoints <= 0) return [];
+  return [{
+    userId: 'guest',
+    displayName: getLocalProfile()?.displayName || 'You',
+    totalPoints: progress.totalPoints,
+    completedChallenges: progress.completedChallenges.length,
+    level: calculateLevel(progress.totalPoints),
+  }];
 };

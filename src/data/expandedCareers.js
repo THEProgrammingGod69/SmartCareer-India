@@ -1,8 +1,8 @@
 // This file contains expanded career information for all careers in the system
-// It follows the same structure as the detailed careers in CareerDetail_fixed.js
+// It follows the same structure as the detailed careers in CareerDetail.js
 
 export const expandedCareers = [
-  // Careers 1-4 already have detailed information in CareerDetail_fixed.js
+  // Careers 1-4 already have detailed information in CareerDetail.js
   
   // Career 5: Financial Analyst
   {

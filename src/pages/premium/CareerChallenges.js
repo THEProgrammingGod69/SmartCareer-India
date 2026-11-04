@@ -45,12 +45,12 @@ import {
   Visibility,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 import { careerChallenges } from '../../utils/careerChallengesData';
 import { getUserChallengesData, submitChallenge, getNextChallengeMessage } from '../../services/careerChallengesService';
 
 const CareerChallenges = () => {
-  const { currentUser, userRoles } = useAuth();
+  const { currentUser, userRoles } = useLocalUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userPoints, setUserPoints] = useState(0);
@@ -76,7 +76,7 @@ const CareerChallenges = () => {
       
       try {
         setLoading(true);
-        // Get user challenges data from Firebase
+        // Get the visitor's challenge data
         const userChallengesData = await getUserChallengesData(currentUser.uid);
         
         // Update state with user data
@@ -119,11 +119,6 @@ const CareerChallenges = () => {
 
   // Handle challenge submission
   const handleSubmitChallenge = async () => {
-    if (!currentUser) {
-      navigate('/login');
-      return;
-    }
-    
     if (!submissionText.trim()) {
       setNotification({
         open: true,
@@ -134,11 +129,12 @@ const CareerChallenges = () => {
     }
     
     try {
-      // Submit challenge to Firebase
+      // Save the submission
       const result = await submitChallenge(
         currentUser.uid,
         selectedChallenge.id,
-        submissionText
+        submissionText,
+        selectedChallenge
       );
       
       if (result.success) {

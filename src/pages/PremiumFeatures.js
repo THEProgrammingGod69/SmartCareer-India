@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Container,
@@ -46,35 +46,12 @@ import {
   Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-// Payment service removed
 
 const PremiumFeatures = () => {
-  const { updatePremiumStatus } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   
-  // Auto-grant premium access
-  useEffect(() => {
-    // Grant premium access automatically to all users
-    updatePremiumStatus(true, {
-      status: 'active',
-      plan: 'Premium',
-      current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
-      cancel_at_period_end: false,
-    });
-    
-    // Set notification that premium is enabled
-    setNotification({
-      open: true,
-      message: 'Premium features are now accessible!',
-      severity: 'success'
-    });
-  }, [updatePremiumStatus]);
-
-  // No need for payment success check - removed
-
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };

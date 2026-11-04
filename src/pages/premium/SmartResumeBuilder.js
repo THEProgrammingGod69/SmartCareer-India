@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Box, Button, Container, Grid, Paper, TextField, Typography, Divider, Chip, Avatar, IconButton } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';
 import { useReactToPrint } from 'react-to-print';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 
 const DEFAULT_PROFILE_PIC = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; // fallback image
 
@@ -36,7 +36,7 @@ const SmartResumeBuilder = () => {
   const [loading, setLoading] = useState(false);
   const resumeRef = useRef();
   const fileInputRef = useRef();
-  const { currentUser } = useAuth();
+  const { currentUser } = useLocalUser();
 
   const handleChange = (field, value) => {
     setResume(prev => ({ ...prev, [field]: value }));

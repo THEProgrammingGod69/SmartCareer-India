@@ -54,11 +54,11 @@ import {
   Commute,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLocalUser } from '../../utils/localUser';
 import { predictBurnoutAndLifestyle } from '../../utils/premiumCareerFeatures';
 
 const BurnoutPrediction = () => {
-  const { currentUser, userRoles } = useAuth();
+  const { currentUser, userRoles } = useLocalUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userPreferences, setUserPreferences] = useState(null);
