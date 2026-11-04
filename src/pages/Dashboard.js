@@ -1,45 +1,33 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
+import { Box, Container, Grid, Typography, Card, Button, Stack } from '@mui/material';
 import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  Chip,
-  Stack,
-} from '@mui/material';
-import {
-  Quiz as QuizIcon,
-  Explore as ExploreIcon,
+  QuizOutlined as QuizIcon,
+  ExploreOutlined as ExploreIcon,
   TrendingUp as TrendingUpIcon,
-  Psychology as PsychologyIcon,
+  PsychologyOutlined as PsychologyIcon,
   ArrowForward as ArrowForwardIcon,
-  AutoAwesome as SparkIcon,
-  MenuBook as GuideIcon,
-  Description as ResumeIcon,
-  RecordVoiceOver as InterviewIcon,
+  MenuBookOutlined as GuideIcon,
+  DescriptionOutlined as ResumeIcon,
+  RecordVoiceOverOutlined as InterviewIcon,
+  NorthEast as NorthEastIcon,
 } from '@mui/icons-material';
 import { useLocalUser } from '../utils/localUser';
 import { brand } from '../contexts/ThemeContext';
 
-const IconTile = ({ children, size = 48 }) => (
+const IconTile = ({ children, size = 40 }) => (
   <Box
     sx={{
       width: size,
       height: size,
-      borderRadius: '14px',
+      borderRadius: '10px',
       display: 'grid',
       placeItems: 'center',
-      color: '#fff',
-      backgroundImage: brand.gradient,
-      boxShadow: '0 10px 24px -10px rgba(124, 92, 255, 0.9)',
+      color: 'primary.main',
+      bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.14 : 0.08),
       flexShrink: 0,
-      '& svg': { fontSize: size * 0.5 },
+      '& svg': { fontSize: size * 0.52 },
     }}
   >
     {children}
@@ -104,118 +92,100 @@ const Dashboard = () => {
 
   return (
     <Container maxWidth="lg" disableGutters>
-      {/* Welcome hero */}
-      <Box
-        sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: '28px',
-          p: { xs: 3, md: 5 },
-          mb: 4,
-          border: '1px solid',
-          borderColor: 'divider',
-          background: (t) =>
-            `linear-gradient(135deg, ${alpha('#7C5CFF', t.palette.mode === 'dark' ? 0.35 : 0.14)} 0%, ${alpha('#22D3EE', t.palette.mode === 'dark' ? 0.16 : 0.1)} 100%)`,
-        }}
+      {/* Header */}
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        alignItems={{ xs: 'flex-start', md: 'flex-end' }}
+        justifyContent="space-between"
+        spacing={2.5}
+        sx={{ pb: 3.5, mb: 3.5, borderBottom: '1px solid', borderColor: 'divider' }}
       >
-        <Box
-          aria-hidden
-          sx={{
-            position: 'absolute',
-            right: -80,
-            top: -80,
-            width: 320,
-            height: 320,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(34,211,238,0.35), transparent 65%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <Box sx={{ position: 'relative', maxWidth: 680 }}>
-          <Chip
-            size="small"
-            icon={<SparkIcon sx={{ fontSize: 16 }} />}
-            label="Dashboard"
-            sx={{ mb: 2, bgcolor: (t) => alpha(t.palette.background.paper, 0.5), '& .MuiChip-icon': { color: 'secondary.main' } }}
-          />
-          <Typography variant="h3" sx={{ fontSize: { xs: 30, md: 42 }, mb: 1.5 }}>
+        <Box sx={{ maxWidth: 640 }}>
+          <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+            Dashboard
+          </Typography>
+          <Typography variant="h4" sx={{ fontSize: { xs: 28, md: 34 }, mb: 1 }}>
             Welcome, {currentUser?.displayName || 'User'}!
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ fontSize: { md: 18 }, mb: 3 }}>
+          <Typography color="text.secondary">
             Your journey to the perfect career starts here. Explore our tools to discover and plan your career path.
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-            <Button variant="contained" startIcon={<QuizIcon />} onClick={() => navigate('/career-quiz')}>
-              Take Career Quiz
-            </Button>
-            <Button variant="outlined" startIcon={<PsychologyIcon />} onClick={() => navigate('/ai-coach')}>
-              AI Career Coach
-            </Button>
-          </Stack>
         </Box>
-      </Box>
+        <Stack direction="row" spacing={1.25}>
+          <Button variant="outlined" onClick={() => navigate('/ai-coach')}>
+            AI Career Coach
+          </Button>
+          <Button variant="contained" endIcon={<ArrowForwardIcon />} onClick={() => navigate('/career-quiz')}>
+            Take Career Quiz
+          </Button>
+        </Stack>
+      </Stack>
 
       {/* Quick actions */}
-      <Grid container spacing={3}>
-        {dashboardCards.map((card) => (
+      <Grid container spacing={2}>
+        {dashboardCards.map((card, i) => (
           <Grid item key={card.title} xs={12} sm={6} md={3}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', '&:hover': { transform: 'translateY(-5px)' } }}>
-              <CardContent sx={{ flexGrow: 1, p: 3 }}>
+            <Card
+              onClick={card.action}
+              sx={{ height: '100%', p: 2.5, cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <IconTile>{card.icon}</IconTile>
-                <Typography variant="h6" component="h2" sx={{ mt: 2.5, mb: 1 }}>
-                  {card.title}
+                <Typography sx={{ fontFamily: brand.monoFont, fontSize: 12, color: 'text.secondary' }}>
+                  0{i + 1}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                  {card.description}
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ px: 3, pb: 3 }}>
-                <Button fullWidth variant="outlined" endIcon={<ArrowForwardIcon />} onClick={card.action}>
-                  {card.buttonText}
-                </Button>
-              </CardActions>
+              </Stack>
+              <Typography variant="h6" component="h2" sx={{ mt: 2.5, mb: 0.75, fontSize: 17 }}>
+                {card.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65, flexGrow: 1 }}>
+                {card.description}
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 2.5, fontWeight: 600, fontSize: 14 }}>
+                <span>{card.buttonText}</span>
+                <ArrowForwardIcon sx={{ fontSize: 16 }} />
+              </Stack>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      <Grid container spacing={3} sx={{ mt: 1 }}>
+      <Grid container spacing={2} sx={{ mt: 0.5 }}>
         {/* Progress */}
         <Grid item xs={12} md={5}>
-          <Card sx={{ height: '100%', p: 3.5 }}>
-            <Typography variant="h5" gutterBottom>
+          <Card sx={{ height: '100%', p: 3 }}>
+            <Typography variant="h6" sx={{ mb: 0.5 }}>
               Your Progress
             </Typography>
-            <Box
-              sx={{
-                my: 3,
-                mx: 'auto',
-                width: 140,
-                height: 140,
-                borderRadius: '50%',
-                display: 'grid',
-                placeItems: 'center',
-                background: (t) => `conic-gradient(${t.palette.primary.main} 0deg, ${alpha(t.palette.primary.main, 0.15)} 0deg)`,
-                position: 'relative',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 112,
-                  height: 112,
-                  borderRadius: '50%',
-                  bgcolor: 'background.paper',
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                <QuizIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Box>
-            </Box>
-            <Typography variant="body1" color="text.secondary" paragraph sx={{ textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               You haven't taken any career assessments yet. Start your journey by taking our career quiz!
             </Typography>
-            <Button fullWidth variant="contained" startIcon={<QuizIcon />} onClick={() => navigate('/career-quiz')}>
+            <Stack spacing={1.25} sx={{ mb: 3 }}>
+              {['Career Quiz', 'Explore Careers', 'AI Career Coach'].map((step, i) => (
+                <Stack key={step} direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                    sx={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      border: '1.5px solid',
+                      borderColor: i === 0 ? 'primary.main' : 'divider',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 11,
+                      fontFamily: brand.monoFont,
+                      color: i === 0 ? 'primary.main' : 'text.secondary',
+                    }}
+                  >
+                    {i + 1}
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: i === 0 ? 600 : 500, color: i === 0 ? 'text.primary' : 'text.secondary' }}>
+                    {step}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+            <Button fullWidth variant="contained" onClick={() => navigate('/career-quiz')}>
               Take Career Quiz
             </Button>
           </Card>
@@ -223,46 +193,42 @@ const Dashboard = () => {
 
         {/* Resources */}
         <Grid item xs={12} md={7}>
-          <Card sx={{ height: '100%', p: 3.5 }}>
-            <Typography variant="h5" gutterBottom>
+          <Card sx={{ height: '100%', p: 3 }}>
+            <Typography variant="h6" sx={{ mb: 0.5 }}>
               Recommended Resources
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Based on your profile, here are some resources that might interest you:
             </Typography>
-            <Stack spacing={1.5}>
-              {resources.map((r) => (
+            <Box>
+              {resources.map((r, i) => (
                 <Box
                   key={r.title}
                   onClick={() => navigate(r.path)}
                   sx={{
-                    p: 2,
-                    borderRadius: '16px',
-                    border: '1px solid',
-                    borderColor: 'divider',
+                    py: 1.75,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 2,
                     cursor: 'pointer',
-                    transition: 'all .2s ease',
-                    '&:hover': { borderColor: 'primary.main', bgcolor: (t) => alpha(t.palette.primary.main, 0.08) },
+                    borderTop: i === 0 ? 'none' : '1px solid',
+                    borderColor: 'divider',
+                    '&:hover .sc-arrow': { color: 'text.primary', transform: 'translate(2px, -2px)' },
                   }}
                 >
-                  <IconTile size={42}>{r.icon}</IconTile>
+                  <IconTile size={36}>{r.icon}</IconTile>
                   <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       {r.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {r.description}
                     </Typography>
                   </Box>
-                  <Button size="small" endIcon={<ArrowForwardIcon />} sx={{ flexShrink: 0, display: { xs: 'none', sm: 'inline-flex' } }}>
-                    Read More
-                  </Button>
+                  <NorthEastIcon className="sc-arrow" sx={{ fontSize: 18, color: 'text.secondary', transition: 'all .15s ease' }} />
                 </Box>
               ))}
-            </Stack>
+            </Box>
           </Card>
         </Grid>
       </Grid>

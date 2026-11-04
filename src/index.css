@@ -41,18 +41,8 @@ code {
   padding-bottom: 1rem;
 }
 
-@keyframes sc-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-14px); }
-}
-
-@keyframes sc-pulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
-}
-
-@keyframes sc-fade-up {
-  from { opacity: 0; transform: translateY(18px); }
+@keyframes sc-fade {
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
